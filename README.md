@@ -1,0 +1,34 @@
+# millfolio
+
+Superproject aggregating the millfolio repos as git submodules, orchestrated with
+[moon](https://moonrepo.dev). Each submodule stays an independent repo under
+github.com/millfolio; this repo pins them together and provides cross-project
+build/check/release tasks. Mojo builds run through `pixi` (moon wraps them as
+`system` tasks).
+
+## Layout
+- `app/`, `engine/`, `vault/`, `website/`, `menu-bar/` — apps/clients
+- `flare/`, `json/`, `jinja2.mojo/`, `lancedb.mojo/`, `pdftotext.mojo/`, `zlib.mojo/`, `csv.mojo/` — Mojo libraries (pixi-managed)
+- `.moon/` — moon workspace config; per-project tasks live in each submodule's `moon.yml`
+- `scripts/` — helper scripts (most superseded by moon tasks; `ios.sh` is wrapped by `app-ios:run`)
+
+## Setup
+```sh
+git clone --recurse-submodules git@github.com:millfolio/millfolio.git
+# or, after a plain clone:
+git submodule update --init --recursive
+curl -fsSL https://moonrepo.dev/install/moon.sh | bash   # then: export PATH="$HOME/.moon/bin:$PATH"
+```
+`pixi` must be on PATH (the Mojo repos carry their own `pixi.toml`/`pixi.lock`).
+
+## Common tasks
+```sh
+moon run :check                          # build/check every project (replaces scripts/check.sh)
+moon run vault:build-cli menu-bar:build  # Swift builds (replaces scripts/build.sh)
+moon run app-ios:build                   # iOS simulator build (replaces scripts/ios.sh)
+moon run app-ios:run                     # iOS build + launch on the simulator + screenshot
+moon run vault:bundle                    # build millfolio.zip install bundle
+moon run vault:formula -- v0.4.1         # bump the Homebrew formula to a published tag
+```
+
+See [Moonrepo.md](Moonrepo.md) for the full migration design and caveats.

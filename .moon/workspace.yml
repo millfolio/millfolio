@@ -1,0 +1,23 @@
+$schema: 'https://moonrepo.dev/schemas/workspace.json'
+
+# Explicit id → path map. IDs are clean (no dots); paths keep the on-disk names,
+# preserving the Mojo `-I ../sibling` layout invariant.
+projects:
+  app-ios: 'app/ios'
+  app-server: 'app/server'
+  app-web: 'app/web'
+  csv: 'csv.mojo'
+  engine: 'engine'
+  flare: 'flare'
+  jinja2: 'jinja2.mojo'
+  json: 'json'
+  lancedb: 'lancedb.mojo'
+  menu-bar: 'menu-bar'
+  pdftotext: 'pdftotext.mojo'
+  vault: 'vault'
+  website: 'website'
+  zlib: 'zlib.mojo'
+
+vcs:
+  client: 'git'
+  defaultBranch: 'main'

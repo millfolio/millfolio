@@ -1,0 +1,4 @@
+$schema: 'https://moonrepo.dev/schemas/toolchain.json'
+
+# No managed language toolchains — all tasks run via the `system` toolchain
+# (pixi / swift / xcodebuild / npm come from PATH). Mojo is driven through pixi.
