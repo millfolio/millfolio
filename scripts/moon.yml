@@ -1,0 +1,15 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+layer: 'tool'
+tags: ['release']
+
+# Release orchestration for the superproject (the homebrew-tap is not a submodule,
+# so this drives it directly). The per-artifact steps also exist on `vault`
+# (vault:bundle, vault:formula); this ties tag → CI → tap into one command.
+tasks:
+  # moon run release:publish -- vX.Y.Z
+  publish:
+    command: 'bash release.sh'
+    toolchain: 'system'
+    options:
+      cache: false # side-effecting (tags, pushes); never cache
+      runInCI: false

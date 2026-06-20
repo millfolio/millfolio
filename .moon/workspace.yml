@@ -17,7 +17,19 @@ projects:
   vault: 'vault'
   website: 'website'
   zlib: 'zlib.mojo'
+  # Superproject-level orchestration (release pipeline).
+  release: 'scripts'
 
 vcs:
   client: 'git'
   defaultBranch: 'main'
+
+# Don't hash build artifacts / tool caches as task inputs (submodule .gitignore
+# isn't always read at the superproject level).
+hasher:
+  ignorePatterns:
+    - '**/.build/**'
+    - '**/.pixi/**'
+    - '**/node_modules/**'
+    - '**/dist/**'
+    - '**/build/**'
