@@ -1,5 +1,7 @@
 # millfolio
 
+> The product: **[millfolio.app](https://millfolio.app)** — a private, on-device document vault.
+
 Superproject aggregating the millfolio repos as git submodules, orchestrated with
 [moon](https://moonrepo.dev). Each submodule stays an independent repo under
 github.com/millfolio; this repo pins them together and provides cross-project
