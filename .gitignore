@@ -2,3 +2,6 @@ logs/
 .moon/cache/
 .moon/docker/
 .DS_Store
+
+# agent worktrees (transient)
+.claude/worktrees/
