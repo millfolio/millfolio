@@ -70,6 +70,12 @@ mill ask "<q>"      # one-shot vault answer
 
 ## Conventions for agents
 
+- **At session start, check GitHub SSH reachability** and tell the user if it's
+  down — pushes and releases here go over SSH, so catching it early avoids a
+  half-finished release. Run `ssh -o BatchMode=yes -o ConnectTimeout=5 -T
+  git@github.com` (a successful auth exits 1 with `Hi <user>!`; a failure is a
+  timeout or `Permission denied (publickey)`). If it fails, notify the user (e.g.
+  "GitHub SSH isn't available — run `ssh-add` / check your key before releasing").
 - **Don't use `cd`** in Bash commands — it can trigger a permission prompt. `gh`
   takes `-R <owner>/<repo>`; `git` takes `-C <repo>`; `pixi`/`swift` take
   `--package-path` / run from the project dir via moon.
