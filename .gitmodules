@@ -46,3 +46,6 @@
 	path = zlib.mojo
 	url = git@github.com:millfolio/zlib.mojo.git
 	branch = main
+[submodule "docx.mojo"]
+	path = docx.mojo
+	url = git@github.com:millfolio/docx.mojo.git
