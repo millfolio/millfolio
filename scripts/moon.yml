@@ -13,3 +13,12 @@ tasks:
     options:
       cache: false # side-effecting (tags, pushes); never cache
       runInCI: false
+
+  # moon run release:verify [-- vX.Y.Z]   (no arg → checks whatever the tap pins)
+  # Confirms both release assets are attached AND the tap formula matches.
+  verify:
+    command: 'bash verify_release.sh'
+    toolchain: 'system'
+    options:
+      cache: false # queries live GitHub state; never cache
+      runInCI: false
