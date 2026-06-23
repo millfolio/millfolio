@@ -51,20 +51,25 @@ project. Each ships as a precompiled `.mojopkg`.
 `vault/core/src/vault` is **what millfolio knows about personal documents**. This is
 the "tools" layer; `money` is one of many. It is the confidentiality boundary on the
 tool side: every tool takes an **alias** (`file_0`, `col_2`), resolves it internally,
-and never returns a real path or name. Three concerns live here today:
+and never returns a real path or name. It is split into **three sub-packages** with a
+clean dependency chain `tools → index → extract`; the top `vault/__init__.mojo`
+re-exports the surface so the `from vault import *` contract is identical whether
+consumed as source or as a precompiled `vault.mojopkg`:
 
-- **Tool surface** — what a generated program imports via `from vault import *`:
-  `manifest`, `search`, `file_chunks`, `csv_rows`, `pdf_text`/`md_text`/`docx_text`,
-  `ask_local`/`ask_local_batch`, `transactions`, `print_answer`, `progress`,
-  `iso_date`, `parse_amount`, `money`.
-- **Indexer** — `build_index` (incremental chunk + embed), the LanceDB store, the
-  side-tables (`chunks.tsv`, `manifest.tsv`, `transactions.tsv`).
-- **Domain extraction** — the **reconcile-validated** transaction extractor
+- **`vault/tools/`** — the tool surface a generated program imports via
+  `from vault import *`: `manifest`, `search`, `file_chunks`, `csv_rows`,
+  `pdf_text`/`md_text`/`docx_text`, `ask_local`/`ask_local_batch`, `transactions`,
+  `print_answer`, `progress`, `iso_date`, `parse_amount`, `money`. Small + stable —
+  treat it as a versioned contract (it must match `privacy_box-system.md` exactly).
+- **`vault/index/`** — `build_index` (incremental chunk + embed), the LanceDB store,
+  the readers/embed/sha256, the side-tables (`chunks.tsv`, `manifest.tsv`,
+  `transactions.tsv`).
+- **`vault/extract/`** — the **reconcile-validated** transaction extractor
   (statements → `Txn`s trusted only when they close against the statement's own
   arithmetic), plus amounts/dates parsing/formatting.
 
 It uses the low-level libs (flare → the engine over HTTP, lancedb → the index,
-pdf/docx/csv → extraction).
+pdf/docx/csv → extraction). Tests mirror the structure under `core/test/{index,extract}/`.
 
 ## 3. Infra / runtime
 
@@ -133,12 +138,11 @@ to callers.
 The four-layer model is the right shape, and the codebase largely follows it. The
 parts I'd call out:
 
-- **The `vault` package is doing three jobs** (tool surface, indexer, domain
-  extractor) under one roof. They're cohesive today, but as the domain grows,
-  splitting them into sub-packages — `vault.tools` (the `from vault import *` API),
-  `vault.index` (build/storage), `vault.extract` (statement reconciliation) — would
-  keep the public tool contract small and stable while the heavier logic evolves
-  behind it. `money`/`parse_amount`/`iso_date` are the seed of a reusable
+- **The `vault` package is split into `vault.tools` / `vault.index` / `vault.extract`**
+  (done — the three jobs that used to share one roof now have a clean
+  `tools → index → extract` dependency chain). The public tool contract stays small
+  and stable in `tools/` while the heavier indexer and extractor logic evolve behind
+  it. `money`/`parse_amount`/`iso_date` (in `extract/`) are the seed of a reusable
   formatting/parsing group.
 - **"Tools" is the right name for what the generated program sees**, and it's worth
   treating the `from vault import *` surface as a *versioned contract* (it already
