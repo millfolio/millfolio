@@ -49,3 +49,6 @@
 [submodule "docx.mojo"]
 	path = docx.mojo
 	url = git@github.com:millfolio/docx.mojo.git
+[submodule "logging.mojo"]
+	path = logging.mojo
+	url = git@github.com:millfolio/logging.mojo.git
