@@ -5,3 +5,7 @@ logs/
 
 # agent worktrees (transient)
 .claude/worktrees/
+
+# nested local-only demo repos (moved under millfolio; independent git repos)
+/demo/
+/demo-vault/
