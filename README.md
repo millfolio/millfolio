@@ -1,5 +1,7 @@
 # millfolio
 
+> 💬 **Community:** questions, ideas, and show-and-tell live in [GitHub Discussions](https://github.com/millfolio/millfolio/discussions).
+
 > The product: **[millfolio.app](https://millfolio.app)** — a private, on-device document vault.
 
 Superproject aggregating the millfolio repos as git submodules, orchestrated with
