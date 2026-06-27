@@ -1,14 +1,19 @@
 #!/usr/bin/env bash
 #
-# release_preflight.sh — build the release bundle (millfolio.zip) LOCALLY, against your
-# local sibling repos, so a packaging/checkout gap fails HERE instead of in CI after the
-# tag is already live (which ships a broken release: the tag + the CLI asset attach, but
-# millfolio.zip never builds, and `mill install` then 404s on the bundle — exactly what
-# happened with v0.4.29 when logging.mojo wasn't vendored/checked out).
+# release_preflight.sh — build the release bundle (millfolio.zip) LOCALLY and COMPILE its
+# components, so a packaging gap fails HERE (before the tag) instead of at install time
+# for users.
 #
-# This runs the real `vault/scripts/package_bundle.sh`, so it exercises every component
-# packager (engine, privacy_box+vendored libs, vault core, app) the same way CI does.
-# It is SLOW (builds the engine + the app web UI) — that's the point; releases are rare
+# Two layers, because they catch different bugs:
+#   1. `package_bundle.sh` — runs every component packager; catches packaging-SCRIPT
+#      failures (a `cp` of a missing path, a libs vendoring gap).
+#   2. compile the bundle — `mill install` BUILDS privacy_box + the app server at install
+#      time from the bundle's copied source, so a module that wasn't copied into the
+#      bundle (e.g. runqueue.mojo) only fails THERE. So we extract the bundle and run the
+#      SAME `mojo build` the installer runs. THIS is what catches the v0.4.30/runqueue
+#      class of bug before a release ships.
+#
+# Slow (builds the engine + app web, then compiles) — that's the point; releases are rare
 # and a broken one is expensive. Needs the dev pixi envs (run a normal build once first).
 #
 #   moon run release:preflight        (or: bash scripts/release_preflight.sh)
@@ -17,8 +22,24 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 TMP="$(mktemp -d)"; trap 'rm -rf "$TMP"' EXIT
 OUT="$TMP/millfolio.zip"
 
-echo "==> release preflight: building millfolio.zip locally (catches packaging gaps unit tests can't)…"
+echo "==> [1/2] building millfolio.zip locally…"
 ( cd "$ROOT/vault" && bash scripts/package_bundle.sh "$OUT" )
-
 [[ -s "$OUT" ]] || { echo "error: package_bundle.sh produced no millfolio.zip" >&2; exit 1; }
-echo "✅ bundle builds — $(du -h "$OUT" | cut -f1). Safe to release."
+
+echo "==> [2/2] compile-checking the bundle ($(du -h "$OUT" | cut -f1)) — the install-time builds…"
+EX="$TMP/extract"; mkdir -p "$EX"; unzip -q "$OUT" -d "$EX"
+
+# Run the SAME `mojo build` invocations the Bootstrapper runs at install time, against
+# the EXTRACTED bundle (so a module missing from the bundle fails here). Keep the -I sets
+# in sync with vault/cli/Sources/MillfolioCore/Bootstrapper.swift (installPrivacyBox /
+# installAppServer). Compile only — the FFI shims are dlopen'd at runtime, not linked.
+compile() {  # $1 = subdir under the extracted bundle ; $2 = mojo-build args (one string)
+  echo "    mojo build  (in $1)"
+  ( cd "$ROOT/vault" && pixi run bash -c "cd '$EX/$1' && mkdir -p build && mojo build $2" )
+}
+compile "privacy_box/privacy_box" \
+  "src/privacy_box.mojo -I ../flare -I ../json -I ../jinja2.mojo/src -I ../logging.mojo/src -o build/privacy_box"
+compile "app" \
+  "src/server.mojo -I src -I ../privacy_box/privacy_box/src -I ../privacy_box/flare -I ../privacy_box/json -I ../privacy_box/jinja2.mojo/src -I ../privacy_box/logging.mojo/src -o build/millfolio-server"
+
+echo "✅ bundle builds AND compiles (privacy_box + app server). Safe to release."
