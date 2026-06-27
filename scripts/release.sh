@@ -17,6 +17,18 @@ TIMEOUT_TRIES=120; SLEEP=20   # ~40 min max per asset
 command -v gh >/dev/null || { echo "gh CLI not found" >&2; exit 1; }
 [ -z "$(git -C "$VAULT" status --porcelain)" ] || { echo "vault working tree is dirty — commit/stash first" >&2; exit 1; }
 
+# 0. PREFLIGHT — build the bundle locally BEFORE tagging, so a packaging/checkout gap
+# fails here (no tag, no harm) instead of in CI after the tag is live (a broken release
+# with the tag + CLI attached but no millfolio.zip → mill install 404s). Override with
+# RELEASE_SKIP_PREFLIGHT=1 only when you know the bundle already builds.
+if [ "${RELEASE_SKIP_PREFLIGHT:-0}" != 1 ]; then
+  bash "$ROOT/scripts/release_preflight.sh" || {
+    echo "error: bundle preflight FAILED — NOT tagging $VERSION. Fix the packaging, then re-run." >&2
+    echo "       (override with RELEASE_SKIP_PREFLIGHT=1 if you're certain the bundle builds.)" >&2
+    exit 1
+  }
+fi
+
 # 1. tag + push vault
 git -C "$VAULT" fetch -q origin
 if git -C "$VAULT" ls-remote --tags --exit-code origin "refs/tags/$VERSION" >/dev/null 2>&1; then

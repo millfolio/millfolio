@@ -6,6 +6,16 @@ tags: ['release']
 # so this drives it directly). The per-artifact steps also exist on `vault`
 # (vault:bundle, vault:formula); this ties tag → CI → tap into one command.
 tasks:
+  # moon run release:preflight — build millfolio.zip LOCALLY before tagging, so a
+  # packaging/checkout gap fails here instead of in CI after the tag is live (a broken
+  # release with no bundle). `publish` runs this first; run it standalone to check.
+  preflight:
+    command: 'bash release_preflight.sh'
+    toolchain: 'system'
+    options:
+      cache: false # builds artifacts from live source; never cache
+      runInCI: false
+
   # moon run release:publish -- vX.Y.Z
   publish:
     command: 'bash release.sh'
