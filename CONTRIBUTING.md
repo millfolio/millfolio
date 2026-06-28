@@ -14,14 +14,37 @@ repo* guide.
 
 ## Prerequisites
 
-- **git** with submodule support — clone with `--recurse-submodules`.
-- **[moon](https://moonrepo.dev)** on `PATH` — the cross-project task runner.
-- **[pixi](https://pixi.sh)** on `PATH` — every Mojo repo carries its own
-  `pixi.toml`/`pixi.lock` and pins the **same** Mojo nightly (the `-I ../sibling`
-  layout requires one shared version).
-- **Swift / Xcode** for the `mill` CLI, the iOS app, and `menu-bar`.
-- **Xcode Metal Toolchain** (`xcodebuild -downloadComponent MetalToolchain`) for
-  any GPU gate — `engine`'s Metal builds and `json`'s GPU test suite need it.
+Install these first. The versions below are what the project is currently built
+and tested against — a newer release is generally fine; older than the stated
+floor is not.
+
+| tool | version | why | install |
+|------|---------|-----|---------|
+| **[pixi](https://pixi.sh)** | **≥ 0.69** (tested **0.71.1**) | per-repo env + Mojo toolchain manager. **The `pixi.lock` files use the v7 format, which pixi < 0.69 can't read.** | `curl -fsSL https://pixi.sh/install.sh \| bash` |
+| **[moon](https://moonrepo.dev)** | **≥ 2.0** (tested **2.3.4**) | cross-project task runner (`moon run :check`) | `curl -fsSL https://moonrepo.dev/install/moon.sh \| bash` |
+| **[Rust](https://rustup.rs)** stable (via rustup) | **recent stable** (tested **1.94**) | builds the `ffi/` Rust shims (lancedb, zlib, flare TLS/HTTP, browser-native recorder) | `curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \| sh` |
+| **git** | any recent | submodules | system / `xcode-select --install` |
+| **Swift / Xcode** | Xcode 16+ | the `mill` CLI, iOS app, `menu-bar` | App Store |
+| **Xcode Metal Toolchain** | — | GPU gates: `engine` Metal builds + `json`'s GPU suite | `xcodebuild -downloadComponent MetalToolchain` |
+
+After installing, make sure `pixi` and `moon` are on `PATH` (add to your shell
+profile):
+
+```sh
+export PATH="$HOME/.pixi/bin:$HOME/.moon/bin:$PATH"
+```
+
+You do **not** install Mojo separately — each repo pins one shared **Mojo
+nightly** in its `pixi.toml`, and `pixi run <task>` downloads it into that repo's
+`.pixi/` on first use (the first run is slow). Rust is only needed when you build
+or touch a repo that has an `ffi/` directory; `rustup`'s `stable` channel (what
+CI uses) is the right default.
+
+**Version gotchas**
+- **pixi ≥ 0.69 is a hard floor** — the locks are v7. If you see `the lock file …
+  uses an older format (v6)`, your pixi is too old: `pixi self-update`.
+- **moon** is the workspace task runner; install it before running any
+  `moon run …` command.
 
 ```sh
 git clone --recurse-submodules git@github.com:millfolio/millfolio.git
