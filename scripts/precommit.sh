@@ -38,14 +38,22 @@ while IFS= read -r f; do
   [ -n "$f" ] && [ -e "$f" ] || continue
   case "$f" in
     *.mojo)
+      # `mojo format` has no --check/--diff (only -q) and writes in place, so we
+      # format a COPY and diff it against the working tree. A formatter parse error
+      # (mblack can't handle some valid Mojo, e.g. `import … as …`) is treated as a
+      # skip — never a block.
       [ "$have_pixi" = 1 ] || continue
       proj="$(nearest_with "$f" pixi.toml)"; [ -n "$proj" ] || continue
-      rel="${f#"$proj"/}"
-      if ! ( cd "$proj" && pixi run -q mojo format --check "$rel" >/dev/null 2>&1 ); then
-        echo "pre-commit: ✗ unformatted Mojo: $f"
-        echo "            fix: (cd $proj && pixi run mojo format $rel)"
-        FAILED=1
+      td="$(mktemp -d)" || continue
+      cp "$f" "$td/c.mojo" || { rm -rf "$td"; continue; }
+      if ( cd "$proj" && pixi run -q mojo format "$td/c.mojo" ) >/dev/null 2>&1; then
+        if ! cmp -s "$f" "$td/c.mojo"; then
+          echo "pre-commit: ✗ unformatted Mojo: $f"
+          echo "            fix: (cd $proj && pixi run mojo format ${f#"$proj"/})"
+          FAILED=1
+        fi
       fi
+      rm -rf "$td"
       ;;
     *.svelte|*.ts|*.js|*.css|*.html|*.svx)
       [ "$have_npm" = 1 ] || continue
