@@ -10,9 +10,13 @@ github.com/millfolio; this repo pins them together and provides cross-project
 build/check/release tasks. Mojo builds run through `pixi` (moon wraps them as
 `system` tasks).
 
+**See also:** [ARCHITECTURE.md](ARCHITECTURE.md) (the four-layer design + the
+privacy model) and [CONTRIBUTING.md](CONTRIBUTING.md) (the submodule workflow).
+
 ## Layout
 - `app/`, `engine/`, `vault/`, `website/`, `menu-bar/` — apps/clients
-- `flare/`, `json/`, `jinja2.mojo/`, `lancedb.mojo/`, `pdftotext.mojo/`, `zlib.mojo/`, `csv.mojo/` — Mojo libraries (pixi-managed)
+- `flare/`, `json/`, `jinja2.mojo/`, `lancedb.mojo/`, `pdftotext.mojo/`, `zlib.mojo/`, `csv.mojo/`, `docx.mojo/`, `logging.mojo/` — Mojo libraries (pixi-managed)
+- `browser-native.mojo/` — auxiliary Mojo lib (agent-friendly `agent-browser` wrapper + a CDP recorder); not in the install bundle
 - `.moon/` — moon workspace config; per-project tasks live in each submodule's `moon.yml`
 - `scripts/` — helper scripts (most superseded by moon tasks; `ios.sh` is wrapped by `app-ios:run`)
 
@@ -37,9 +41,12 @@ compiler).
 xcodebuild -downloadComponent MetalToolchain
 ```
 
-Without it, GPU gates fail with `Metal Compiler failed to compile metallib`. The
-portable `moon run :check` keeps engine on weight-free CPU gates (so it runs on
-machines without the toolchain); the GPU gates run in `moon run release:preflight`.
+Without it, GPU gates fail with `Metal Compiler failed to compile metallib`.
+`engine` stays on weight-free **CPU** gates in `moon run :check` (its GPU gates
+run in `moon run release:preflight`) — but `json:check` **does** run its GPU suite,
+so `moon run :check` overall now needs the Metal toolchain. On a machine without
+it, run the CPU-only subset directly (`pixi run tests-cpu` in `json/`) or skip
+that project.
 
 ## Common tasks
 ```sh

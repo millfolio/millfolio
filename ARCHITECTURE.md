@@ -100,6 +100,13 @@ zero changes to the real code.
   bundle → bumps the Homebrew tap).
 - `demo` + `demo-vault` (separate repos) — the public demo: replay codegen / real
   execution over a synthetic vault, reusing the real infra **unmodified** via config.
+- `browser-native.mojo` — a standalone Mojo lib: an agent-friendly wrapper around
+  the upstream `agent-browser` CDP engine, plus a **recorder** seam (a Rust
+  chromiumoxide cdylib) that observes a human's click/type/navigate in a live
+  session and emits a replayable `job`. **Auxiliary / exploratory** — it is *not*
+  imported by the vault stack and *not* in the install bundle; it's the seed of
+  privacy-preserving, on-device ingestion (e.g. log in and download a statement
+  locally, then hand the file to the vault readers). Off the dependency rule below.
 
 ## The dependency rule
 
@@ -131,7 +138,10 @@ to callers.
 - **Release:** `moon run release:publish -- vX.Y.Z` tags vault → CI builds
   `millfolio.zip` + the `mill` CLI → bumps the Homebrew tap.
 - **Test:** each repo has a pure-Mojo hermetic suite (`pixi run test`) run in CI,
-  with test files under `test/`.
+  with test files under `test/`. `vault:check` also runs `vault:precompile` (the
+  same `.mojopkg` build the release performs) so a precompile-only break — a
+  nightly API rename, a `len(String)` only the tool surface reaches — is caught
+  by `moon run :check`, not at tag time.
 
 ## What I think of this layering
 

@@ -1,0 +1,110 @@
+# Contributing to millfolio
+
+Thanks for your interest! This repo is the **moon workspace / git superproject**
+that ties the millfolio repos together. Each library and app is an **independent
+git submodule** under [github.com/millfolio](https://github.com/millfolio) — you
+make changes *in the submodule*, then bump the superproject's pointer to it.
+
+> 💬 Questions and ideas are welcome in
+> [GitHub Discussions](https://github.com/millfolio/millfolio/discussions).
+
+The big picture lives in [ARCHITECTURE.md](ARCHITECTURE.md); the setup and task
+basics are in the [README](README.md). This file is the *how to work in the
+repo* guide.
+
+## Prerequisites
+
+- **git** with submodule support — clone with `--recurse-submodules`.
+- **[moon](https://moonrepo.dev)** on `PATH` — the cross-project task runner.
+- **[pixi](https://pixi.sh)** on `PATH` — every Mojo repo carries its own
+  `pixi.toml`/`pixi.lock` and pins the **same** Mojo nightly (the `-I ../sibling`
+  layout requires one shared version).
+- **Swift / Xcode** for the `mill` CLI, the iOS app, and `menu-bar`.
+- **Xcode Metal Toolchain** (`xcodebuild -downloadComponent MetalToolchain`) for
+  any GPU gate — `engine`'s Metal builds and `json`'s GPU test suite need it.
+
+```sh
+git clone --recurse-submodules git@github.com:millfolio/millfolio.git
+cd millfolio
+bash scripts/install-hooks.sh        # two-tier git hooks (see below)
+```
+
+## The submodule workflow
+
+A change almost always belongs to **one submodule** (a lib or an app). Work there
+as you would in any repo, then record it upstream:
+
+1. Branch/edit **inside the submodule** (e.g. `vault/`, `json/`, `flare/`). Each
+   is on `main` and has its own history and remote.
+2. Verify with moon (see *Checks* below).
+3. **Commit in the submodule**, then **bump the superproject**:
+   ```sh
+   git -C <submodule> commit -am "…"          # commit the real change
+   git add <submodule> && git commit -m "Bump <submodule>: …"   # record the new SHA
+   ```
+4. **Push leaf repos before the superproject**, so the superproject's gitlinks
+   resolve for everyone:
+   ```sh
+   git -C <submodule> push        # leaf first
+   git push                       # then the superproject pointer
+   ```
+
+Cross-cutting changes (e.g. a Mojo nightly bump) touch several submodules plus a
+superproject pointer commit — same rule, just repeated per repo.
+
+## Checks
+
+Every project's `check` task is **build + full unit tests**, cached and
+affected-aware. It is the single source of truth, locally and in CI.
+
+```sh
+moon run :check                 # everything that changed
+moon run <project>:check        # one project, e.g. json:check, vault:check
+moon run vault:precompile       # the release-critical .mojopkg set (part of vault:check)
+```
+
+> **Metal note.** `moon run :check` is *no longer fully Metal-free*: `json:check`
+> runs the GPU suite (Apple Metal / CUDA), and `vault:check` runs the release
+> `precompile`. On a machine without the Metal toolchain, run the CPU-only
+> subsets directly (`pixi run tests-cpu` in `json/`) or skip those projects.
+
+## Code style & hooks
+
+- **Mojo** is formatted by `mojo format` (= **mblack**, a fork of Python `black`).
+  No `--check`/`--diff` flag — it only writes in place. Run it before committing.
+- **Web** (`app/web`) uses `svelte-check`.
+- The **two-tier hooks** (installed by `scripts/install-hooks.sh`, fanning out to
+  the superproject + every submodule) gate work before it leaves the machine:
+  - **pre-commit** (`scripts/precommit.sh`) — fast, staged files only: `mojo
+    format` check on staged `.mojo` + `svelte-check` on staged web.
+  - **pre-push** (`scripts/preflight.sh`) — full `moon run :check`.
+  - Bypass once with `git commit --no-verify` / `git push --no-verify`.
+
+## Tests
+
+Add tests next to the code you change — each Mojo repo keeps a pure, hermetic
+suite under `test/` (or `tests/`), run by `pixi run test` and gated by the
+project's `check`. New tool-surface behavior, parsers, and FFI seams should ship
+with coverage; prefer pure functions that test without a network or a browser.
+
+## Bumping the Mojo toolchain
+
+All Mojo repos pin one nightly. To bump: edit the pin in **each** `pixi.toml`
+(and the `recipe.yaml` run-reqs for `json` + `flare` — a second, easy-to-miss
+pin), run `pixi update mojo`, then rebuild/test in dependency order
+(libs → engine → vault → app-server). See the nightly-migration notes in
+[CLAUDE.md](CLAUDE.md).
+
+## Releases
+
+Releases are cut from `vault` and orchestrated by `scripts/` — see the **Releases**
+section of [CLAUDE.md](CLAUDE.md). In short: `moon run release:publish -- vX.Y.Z`
+tags `vault`, CI builds + attaches both assets, and the Homebrew tap is bumped;
+confirm with `moon run release:verify`.
+
+## Reporting issues
+
+Open an issue on the **specific submodule** when the problem is scoped to one
+library/app; use this superproject's issues for cross-cutting or build/workspace
+problems. For open-ended questions, prefer
+[Discussions](https://github.com/millfolio/millfolio/discussions).
