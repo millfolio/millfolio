@@ -37,7 +37,7 @@ unavailable: `git push "https://x-access-token:$(gh auth token)@github.com/<org>
 
 `moon run <project>:<task>`. Projects: `vault`, `app-server`, `app-web`,
 `engine`, `menu-bar`, `website`, plus the Mojo libs (`flare`, `json`, `lancedb`,
-`pdftotext`, `csv`, `jinja2`, `zlib`).
+`pdftotext`, `csv`, `jinja2`, `zlib`, `browser-native`).
 
 ```bash
 moon run vault:build         # Mojo binaries: build/vault (core) + build/privacy_box
@@ -130,5 +130,6 @@ mill ask "<q>"      # one-shot vault answer
 | `app/web` | the SvelteKit web UI (Chat + Vault views) |
 | `app/ios`, `menu-bar` | native clients |
 | `flare json lancedb pdftotext csv jinja2 zlib` | vendored Mojo libs |
+| `browser-native.mojo` | Mojo wrapper around the `agent-browser` CLI (agent-friendly browser automation) |
 | `scripts` | release orchestration (`release`/`verify`) |
 | `website` | millfolio.app marketing site |

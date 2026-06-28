@@ -52,3 +52,7 @@
 [submodule "logging.mojo"]
 	path = logging.mojo
 	url = git@github.com:millfolio/logging.mojo.git
+[submodule "browser-native.mojo"]
+	path = browser-native.mojo
+	url = git@github.com:millfolio/browser-native.mojo.git
+	branch = main

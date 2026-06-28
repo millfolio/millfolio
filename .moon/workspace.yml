@@ -6,6 +6,7 @@ projects:
   app-ios: 'app/ios'
   app-server: 'app/server'
   app-web: 'app/web'
+  browser-native: 'browser-native.mojo'
   csv: 'csv.mojo'
   docx: 'docx.mojo'
   engine: 'engine'
