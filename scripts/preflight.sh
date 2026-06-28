@@ -13,6 +13,16 @@
 #   bash scripts/preflight.sh --force    # ignore the cache
 set -euo pipefail
 cd "$(dirname "$0")/.."
+
+# Git exports GIT_DIR/GIT_WORK_TREE/etc. into hook processes. `moon run :check`
+# shells out to git inside sibling submodules for affected-detection; the inherited
+# vars point at the WRONG repo there, which makes those git calls fail or hang
+# (e.g. `core.bare and core.worktree do not make sense`) and stalls the whole push.
+# Clear the hook's git environment so moon (and its tasks) see each repo normally.
+unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE GIT_PREFIX GIT_COMMON_DIR \
+      GIT_NAMESPACE GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES \
+      GIT_QUARANTINE_PATH 2>/dev/null || true
+
 MOON="${MOON:-$HOME/.moon/bin/moon}"
 echo "==> preflight: moon run :check (build + unit tests, cached)"
 exec "$MOON" run :check "$@"
