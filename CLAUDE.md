@@ -53,6 +53,40 @@ Each Mojo project also builds directly via `pixi run build` in its own dir (the
 unified toolchain — see the `mojo-toolchain-via-pixi` note). Prefer `pixi run …`
 to verify Mojo changes locally before relying on CI.
 
+## Toolchain & testing
+
+- **Shared Mojo nightly.** Every Mojo repo pins the *same* nightly in its
+  `pixi.toml` (currently **`1.0.0b3.dev2026062706`**) — the `-I ../sibling` layout
+  requires one shared version. To bump: edit the pin in each `pixi.toml` (and the
+  `recipe.yaml` run-reqs for json + flare — a second, easy-to-miss pin),
+  `pixi update mojo`, then rebuild/test in dep order (libs → engine → vault →
+  app-server). Bump gotchas seen on dev2026062706: recursive structs (e.g. a
+  `List[Self]` field) now hard-error `field has non-implicitly deletable type` →
+  add a trivial `def __del__(deinit self): pass`; destructors must be `def` not
+  `fn`; `reflect[T]()` → `reflect[T]`; `len(String/StringSlice)` → `.byte_length()`.
+
+- **GPU/Metal (engine).** Metal builds need the Xcode **Metal Toolchain**
+  component. If `xcrun metal --version` says `missing Metal Toolchain`, install it
+  once per machine: `xcodebuild -downloadComponent MetalToolchain` (otherwise GPU
+  gates fail `Metal Compiler failed to compile metallib`). `moon run :check` keeps
+  engine on weight-free **CPU** gates (portable); the **GPU** gates run only in
+  `moon run release:preflight`.
+
+- **Each project's `check` = build + full unit tests.** `moon run :check` runs
+  them all, cached + affected-aware — the single source of truth locally and in CI.
+
+- **Two-tier git hooks** (install with `bash scripts/install-hooks.sh`; fans out to
+  the superproject + every submodule):
+  - **pre-commit** (`scripts/precommit.sh`) — FAST, staged files only: `mojo format`
+    check on staged `.mojo` + `svelte-check` on staged web.
+  - **pre-push** (`scripts/preflight.sh`) — FULL `moon run :check` (build + tests).
+  - Bypass once with `git commit --no-verify` / `git push --no-verify`.
+
+- **Formatter is `mojo format` (= mblack,** a fork of Python `black`). No
+  `--check`/`--diff` flag — it only writes in place, so the pre-commit hook formats
+  a *copy* and diffs. mblack can't parse some valid Mojo (aliased imports,
+  `from x import y as z`) — those files are left untouched and the hook skips them.
+
 ## The `mill` CLI (what users run)
 
 Built from `vault/cli`; installed via `brew install millfolio/tap/mill`.
