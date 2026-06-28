@@ -22,11 +22,25 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 TMP="$(mktemp -d)"; trap 'rm -rf "$TMP"' EXIT
 OUT="$TMP/millfolio.zip"
 
-echo "==> [1/2] building millfolio.zip locally…"
+# ── [0/3] engine GPU gates ──────────────────────────────────────────────────
+# The engine ships as source and is compiled on the user's GPU at install time, so
+# the bundle compile-check below never exercises the Metal path. Run the weight-free
+# GPU gates here (on this Metal-capable machine) so a GPU/Metal regression blocks the
+# release BEFORE the tag. Needs the Xcode Metal Toolchain (see the gpu-metal-toolchain
+# note: `xcodebuild -downloadComponent MetalToolchain`).
+echo "==> [0/3] engine GPU gates (Metal: gpu-hello + kernels + simd-gemm + attention)…"
+if ! xcrun metal --version >/dev/null 2>&1; then
+  echo "error: Metal Toolchain missing — run: xcodebuild -downloadComponent MetalToolchain" >&2
+  exit 1
+fi
+( cd "$ROOT/engine" && pixi run test-gpu )
+echo "    ✓ GPU gates pass"
+
+echo "==> [1/3] building millfolio.zip locally…"
 ( cd "$ROOT/vault" && bash scripts/package_bundle.sh "$OUT" )
 [[ -s "$OUT" ]] || { echo "error: package_bundle.sh produced no millfolio.zip" >&2; exit 1; }
 
-echo "==> [2/2] compile-checking the bundle ($(du -h "$OUT" | cut -f1)) — the install-time builds…"
+echo "==> [2/3] compile-checking the bundle ($(du -h "$OUT" | cut -f1)) — the install-time builds…"
 EX="$TMP/extract"; mkdir -p "$EX"; unzip -q "$OUT" -d "$EX"
 
 # Run the SAME `mojo build` invocations the Bootstrapper runs at install time, against
@@ -42,4 +56,4 @@ compile "privacy_box/privacy_box" \
 compile "app" \
   "src/server.mojo -I src -I ../privacy_box/privacy_box/src -I ../privacy_box/flare -I ../privacy_box/json -I ../privacy_box/jinja2.mojo/src -I ../privacy_box/logging.mojo/src -o build/millfolio-server"
 
-echo "✅ bundle builds AND compiles (privacy_box + app server). Safe to release."
+echo "✅ GPU gates pass + bundle builds AND compiles (privacy_box + app server). Safe to release."
