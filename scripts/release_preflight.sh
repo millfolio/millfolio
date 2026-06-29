@@ -36,6 +36,16 @@ fi
 ( cd "$ROOT/engine" && pixi run test-gpu )
 echo "    ✓ GPU gates pass"
 
+# ── codegen prompt examples compile ─────────────────────────────────────────
+# Every ```mojo example in privacy_box-system.md is a real program the frontier
+# model imitates; compile each against the vault package so a broken example (a
+# wrong tool/field like the `.id` vs `.alias` regression) can't ship. Cheap; runs
+# before the slow bundle build. (Lives here, not in the hermetic vault `test`, so
+# it has the sibling lib repos on the -I path.)
+echo "==> codegen prompt examples compile against the vault package…"
+( cd "$ROOT/vault" && pixi run bash scripts/check_prompt_examples.sh )
+echo "    ✓ prompt examples compile"
+
 echo "==> [1/3] building millfolio.zip locally…"
 ( cd "$ROOT/vault" && bash scripts/package_bundle.sh "$OUT" )
 [[ -s "$OUT" ]] || { echo "error: package_bundle.sh produced no millfolio.zip" >&2; exit 1; }
