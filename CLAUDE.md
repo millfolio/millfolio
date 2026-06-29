@@ -18,8 +18,8 @@ never rebuilds, so prod is byte-identical to what was tested.
 ```bash
 moon run release:publish -- vX.Y.Z-rc.N   # DEV: tag a PRE-RELEASE → CI builds both
                                           #      assets → bump the mill-dev formula
-# …test it…
-brew upgrade millfolio/tap/mill-dev && mill-dev install
+# …test it… (FIRST install of mill-dev → `brew install`; a later rc.N → `brew upgrade`)
+brew install millfolio/tap/mill-dev && mill-dev install
 moon run release:promote -- vX.Y.Z        # PROD: copy the tested rc's assets to a
                                           #       clean vX.Y.Z release + bump mill
 moon run release:verify -- vX.Y.Z         # confirm assets + tap formula match

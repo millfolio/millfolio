@@ -130,8 +130,9 @@ prod is byte-identical to what was tested.
 #    PRE-RELEASE (kept off /releases/latest, invisible to prod users).
 moon run release:publish -- vX.Y.Z-rc.N
 
-# 2. TEST it (the dev CLI installs the dev bundle; runs one at a time with prod):
-brew upgrade millfolio/tap/mill-dev && mill-dev install
+# 2. TEST it (the dev CLI installs the dev bundle; runs one at a time with prod).
+#    First install of mill-dev → `brew install` (a later rc.N → `brew upgrade`).
+brew install millfolio/tap/mill-dev && mill-dev install
 
 # 3. PROD — promote the tested rc's assets to a clean vX.Y.Z release + bump `mill`.
 #    No rebuild → prod ships exactly what you tested.

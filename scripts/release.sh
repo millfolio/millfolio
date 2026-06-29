@@ -83,5 +83,7 @@ if ! git -C "$VAULT" diff --cached --quiet -- cli/dist/homebrew/mill-dev.rb; the
   git -C "$VAULT" commit -q -m "cli: bump mill-dev.rb template to $VERSION" -- cli/dist/homebrew/mill-dev.rb
   git -C "$VAULT" push -q origin main
 fi
-echo "==> dev build live. Test it:  brew upgrade millfolio/tap/mill-dev && mill-dev install   ($VERSION)"
+echo "==> dev build live ($VERSION). Test it:"
+echo "      brew install millfolio/tap/mill-dev && mill-dev install   (first time)"
+echo "      brew upgrade millfolio/tap/mill-dev && mill-dev install   (a later rc.N)"
 echo "==> ship to prod when ready:  moon run release:promote -- ${VERSION%-*}"
