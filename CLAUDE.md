@@ -9,20 +9,35 @@ inference server (`engine`) + a privacy/sandbox orchestrator (`vault/privacy-box
 Commands below are run from the superproject root (`/Users/mseritan/dev/millfolio`)
 unless noted. `moon` is at `~/.moon/bin/moon` and on PATH.
 
-## Releases
+## Releases (two channels: dev → test → prod)
 
-The release pipeline lives in `scripts/` (moon project name: `release`).
+The release pipeline lives in `scripts/` (moon project name: `release`). We ship to
+a **dev** channel, test it, then **promote the same artifacts** to prod — promote
+never rebuilds, so prod is byte-identical to what was tested.
 
 ```bash
-moon run release:publish -- vX.Y.Z   # tag vault → CI builds+attaches both assets → bump tap
-moon run release:verify              # check the latest published release is consistent
-moon run release:verify -- vX.Y.Z    # …or a specific tag
+moon run release:publish -- vX.Y.Z-rc.N   # DEV: tag a PRE-RELEASE → CI builds both
+                                          #      assets → bump the mill-dev formula
+# …test it…
+brew upgrade millfolio/tap/mill-dev && mill-dev install
+moon run release:promote -- vX.Y.Z        # PROD: copy the tested rc's assets to a
+                                          #       clean vX.Y.Z release + bump mill
+moon run release:verify -- vX.Y.Z         # confirm assets + tap formula match
 ```
 
-- **publish** (`scripts/release.sh`): tags `vault` (`vX.Y.Z`), waits for both
-  release assets (`millfolio.zip` + `mill-macos.tar.gz`) to attach, bumps the
-  Homebrew formula in `millfolio/homebrew-tap`, syncs the formula template back.
-  Side-effecting (tags/pushes) — never cached.
+- **Two Homebrew formulae in `millfolio/homebrew-tap`:** `mill` (prod, binary `mill`)
+  and `mill-dev` (dev, binary `mill-dev`) — so they coexist. The CLI reads its own
+  channel back via `brew list --versions` and fetches the **version-pinned** bundle
+  (`releases/download/v<version>/millfolio.zip`, NOT `/latest/`), so a dev CLI gets
+  the dev bundle. Testers run `mill-dev`; the public runs `mill`. They share the
+  install footprint, so run **one at a time** (stop/uninstall the other first).
+- **publish** (`scripts/release.sh`): DEV only — requires a `-rc.N`/`-beta.N`/`-dev.N`
+  suffix, tags `vault`, CI attaches both assets to a **pre-release** (kept off
+  `/releases/latest`, invisible to prod), bumps `mill-dev`.
+- **promote** (`scripts/promote.sh`): copies the tested rc's `millfolio.zip` +
+  `mill-macos.tar.gz` to a clean `vX.Y.Z` full release (marked latest) at the same
+  commit, then bumps `mill`. **No rebuild.** Plain `vX.Y.Z` tags don't trigger CI
+  (the build workflows fire only on `v*-*`), so the copied assets are never clobbered.
 - **verify** (`scripts/verify_release.sh`): confirms both assets are attached AND
   the tap formula version matches. No arg → checks whatever the tap currently
   pins. Prints `✅ vX.Y.Z is live` or exits non-zero listing what's missing.

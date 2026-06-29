@@ -1,15 +1,25 @@
 #!/usr/bin/env bash
-# Cut a millfolio release end-to-end:
-#   1. tag `vault` (vX.Y.Z) → CI builds + attaches millfolio.zip + mill-macos.tar.gz
+# Cut a millfolio DEV (pre-release) build end-to-end:
+#   1. tag `vault` (vX.Y.Z-rc.N) → CI builds + attaches millfolio.zip + mill-macos.tar.gz
+#      to a PRE-RELEASE (kept off /releases/latest, so prod users never see it)
 #   2. wait for both release assets
-#   3. bump the Homebrew formula in millfolio/homebrew-tap to the published tag
-#   4. sync the formula template back into vault
+#   3. bump the dev Homebrew formula (mill-dev) in millfolio/homebrew-tap
+#   4. sync the dev formula template back into vault
 #
-# Usage (via moon):  moon run release:publish -- vX.Y.Z
-#        directly:   scripts/release.sh vX.Y.Z
+# This is the DEV channel. You test it (`brew upgrade millfolio/tap/mill-dev &&
+# mill-dev install`), then ship the SAME artifacts to prod with NO rebuild:
+#   moon run release:promote -- vX.Y.Z
+#
+# Usage (via moon):  moon run release:publish -- vX.Y.Z-rc.N
+#        directly:   scripts/release.sh vX.Y.Z-rc.N
 set -euo pipefail
-VERSION="${1:?usage: release.sh vX.Y.Z}"
-[[ "$VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "version must be vX.Y.Z (got '$VERSION')" >&2; exit 2; }
+VERSION="${1:?usage: release.sh vX.Y.Z-rc.N}"
+if [[ ! "$VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-(rc|beta|dev)\.[0-9]+$ ]]; then
+  echo "version must be a PRE-RELEASE vX.Y.Z-rc.N (got '$VERSION')." >&2
+  echo "  Dev builds carry a -rc.N / -beta.N / -dev.N suffix. Prod is cut from a tested" >&2
+  echo "  rc with:  moon run release:promote -- vX.Y.Z   (copies the assets, no rebuild)." >&2
+  exit 2
+fi
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 VAULT="$ROOT/vault"
 TIMEOUT_TRIES=120; SLEEP=20   # ~40 min max per asset
@@ -51,21 +61,22 @@ for asset in millfolio.zip mill-macos.tar.gz; do
   done
 done
 
-# 3. bump the Homebrew formula + publish to the tap
-( cd "$VAULT/cli" && MILL_REPO=millfolio/vault dist/homebrew/update-formula.sh "$VERSION" )
+# 3. bump the DEV Homebrew formula (mill-dev) + publish to the tap
+( cd "$VAULT/cli" && MILL_REPO=millfolio/vault dist/homebrew/update-formula.sh "$VERSION" --dev )
 TAP="$(mktemp -d)/homebrew-tap"
 git clone -q git@github.com:millfolio/homebrew-tap.git "$TAP"
-cp "$VAULT/cli/dist/homebrew/mill.rb" "$TAP/Formula/mill.rb"
+cp "$VAULT/cli/dist/homebrew/mill-dev.rb" "$TAP/Formula/mill-dev.rb"
 if [ -n "$(git -C "$TAP" status --porcelain)" ]; then
-  git -C "$TAP" commit -q -am "mill ${VERSION#v}" && git -C "$TAP" push -q origin HEAD
-  echo "==> tap published mill ${VERSION#v}"
+  git -C "$TAP" commit -q -am "mill-dev ${VERSION#v}" && git -C "$TAP" push -q origin HEAD
+  echo "==> tap published mill-dev ${VERSION#v}"
 else
-  echo "==> tap already at ${VERSION#v}"
+  echo "==> tap already at mill-dev ${VERSION#v}"
 fi
 
-# 4. sync the source-of-truth formula template back into vault
-if [ -n "$(git -C "$VAULT" status --porcelain cli/dist/homebrew/mill.rb)" ]; then
-  git -C "$VAULT" commit -q -m "cli: bump mill.rb template to $VERSION" cli/dist/homebrew/mill.rb
+# 4. sync the source-of-truth dev formula template back into vault
+if [ -n "$(git -C "$VAULT" status --porcelain cli/dist/homebrew/mill-dev.rb)" ]; then
+  git -C "$VAULT" commit -q -m "cli: bump mill-dev.rb template to $VERSION" cli/dist/homebrew/mill-dev.rb
   git -C "$VAULT" push -q origin main
 fi
-echo "==> done. Install:  brew install millfolio/tap/mill   ($VERSION)"
+echo "==> dev build live. Test it:  brew upgrade millfolio/tap/mill-dev && mill-dev install   ($VERSION)"
+echo "==> ship to prod when ready:  moon run release:promote -- ${VERSION%-*}"

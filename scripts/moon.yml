@@ -16,12 +16,21 @@ tasks:
       cache: false # builds artifacts from live source; never cache
       runInCI: false
 
-  # moon run release:publish -- vX.Y.Z
+  # moon run release:publish -- vX.Y.Z-rc.N   — cut a DEV (pre-release) build (mill-dev).
   publish:
     command: 'bash release.sh'
     toolchain: 'system'
     options:
       cache: false # side-effecting (tags, pushes); never cache
+      runInCI: false
+
+  # moon run release:promote -- vX.Y.Z   — ship a tested rc to PROD (mill), no rebuild:
+  # copies the rc's assets to a clean vX.Y.Z release + bumps the prod formula.
+  promote:
+    command: 'bash promote.sh'
+    toolchain: 'system'
+    options:
+      cache: false # side-effecting (release, tag, tap push); never cache
       runInCI: false
 
   # moon run release:verify [-- vX.Y.Z]   (no arg → checks whatever the tap pins)
