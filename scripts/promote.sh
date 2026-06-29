@@ -72,9 +72,12 @@ else
   echo "==> tap already at mill ${PROD#v}"
 fi
 
-# 7. sync the source-of-truth prod formula template back into vault
-if [ -n "$(git -C "$VAULT" status --porcelain cli/dist/homebrew/mill.rb)" ]; then
-  git -C "$VAULT" commit -q -m "cli: bump mill.rb template to $PROD" cli/dist/homebrew/mill.rb
+# 7. sync the source-of-truth prod formula template back into vault. `git add` FIRST
+# (robust whether mill.rb is already tracked or brand-new) — `git commit <pathspec>`
+# matches only tracked files, so a never-before-committed formula would fail.
+git -C "$VAULT" add cli/dist/homebrew/mill.rb
+if ! git -C "$VAULT" diff --cached --quiet -- cli/dist/homebrew/mill.rb; then
+  git -C "$VAULT" commit -q -m "cli: bump mill.rb template to $PROD" -- cli/dist/homebrew/mill.rb
   git -C "$VAULT" push -q origin main
 fi
 

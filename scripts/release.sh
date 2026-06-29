@@ -73,9 +73,12 @@ else
   echo "==> tap already at mill-dev ${VERSION#v}"
 fi
 
-# 4. sync the source-of-truth dev formula template back into vault
-if [ -n "$(git -C "$VAULT" status --porcelain cli/dist/homebrew/mill-dev.rb)" ]; then
-  git -C "$VAULT" commit -q -m "cli: bump mill-dev.rb template to $VERSION" cli/dist/homebrew/mill-dev.rb
+# 4. sync the source-of-truth dev formula template back into vault. `git add` FIRST
+# so the FIRST dev release works: mill-dev.rb is then untracked, and `git commit
+# <pathspec>` matches only tracked files ("pathspec did not match").
+git -C "$VAULT" add cli/dist/homebrew/mill-dev.rb
+if ! git -C "$VAULT" diff --cached --quiet -- cli/dist/homebrew/mill-dev.rb; then
+  git -C "$VAULT" commit -q -m "cli: bump mill-dev.rb template to $VERSION" -- cli/dist/homebrew/mill-dev.rb
   git -C "$VAULT" push -q origin main
 fi
 echo "==> dev build live. Test it:  brew upgrade millfolio/tap/mill-dev && mill-dev install   ($VERSION)"
