@@ -75,6 +75,15 @@ to verify Mojo changes locally before relying on CI.
 - **Each project's `check` = build + full unit tests.** `moon run :check` runs
   them all, cached + affected-aware — the single source of truth locally and in CI.
 
+- **Prompt eval is a PRE-RELEASE gate, not in `:check`.** The codegen system prompt
+  (`vault/privacy-box/resources/privacy_box-system.md`) is an LLM behaviour — it
+  can't be unit-tested. `moon run vault:eval` drives `privacy_box codegen` on a
+  synthetic manifest and lints the generated program's SHAPE (must use
+  `transactions()`/`money()`, never `.alias`/`search()`-for-totals/raw-float `$`) —
+  guarding the "$224,303 phone bill" class. It needs `ANTHROPIC_API_KEY` and is
+  model-nondeterministic, so it's a manual pre-release step, kept OUT of pre-push.
+  See `vault/privacy-box/eval/README.md`.
+
 - **Two-tier git hooks** (install with `bash scripts/install-hooks.sh`; fans out to
   the superproject + every submodule):
   - **pre-commit** (`scripts/precommit.sh`) — FAST, staged files only: `mojo format`
