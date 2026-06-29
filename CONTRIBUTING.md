@@ -118,12 +118,31 @@ pin), run `pixi update mojo`, then rebuild/test in dependency order
 (libs → engine → vault → app-server). See the nightly-migration notes in
 [CLAUDE.md](CLAUDE.md).
 
-## Releases
+## Releases (two channels: dev → test → prod)
 
 Releases are cut from `vault` and orchestrated by `scripts/` — see the **Releases**
-section of [CLAUDE.md](CLAUDE.md). In short: `moon run release:publish -- vX.Y.Z`
-tags `vault`, CI builds + attaches both assets, and the Homebrew tap is bumped;
-confirm with `moon run release:verify`.
+section of [CLAUDE.md](CLAUDE.md) for the full details. We ship to a **dev** channel,
+test it, then **promote the same artifacts** to prod — promote never rebuilds, so
+prod is byte-identical to what was tested.
+
+```bash
+# 1. DEV — cut a pre-release (mill-dev). CI builds + attaches both assets to a
+#    PRE-RELEASE (kept off /releases/latest, invisible to prod users).
+moon run release:publish -- vX.Y.Z-rc.N
+
+# 2. TEST it (the dev CLI installs the dev bundle; runs one at a time with prod):
+brew upgrade millfolio/tap/mill-dev && mill-dev install
+
+# 3. PROD — promote the tested rc's assets to a clean vX.Y.Z release + bump `mill`.
+#    No rebuild → prod ships exactly what you tested.
+moon run release:promote -- vX.Y.Z
+moon run release:verify -- vX.Y.Z
+```
+
+The public installs `brew install millfolio/tap/mill`; testers use
+`millfolio/tap/mill-dev`. The two formulae install different binaries (`mill` vs
+`mill-dev`) so they coexist, but share the install footprint — run one at a time.
+Pushing the tag uses SSH, so load your key first (`ssh-add -l`).
 
 ## Reporting issues
 
