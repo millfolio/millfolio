@@ -65,8 +65,10 @@ echo "==> prod release $PROD published (latest)"
 TAP="$(mktemp -d)/homebrew-tap"
 git clone -q git@github.com:millfolio/homebrew-tap.git "$TAP"
 cp "$VAULT/cli/dist/homebrew/mill.rb" "$TAP/Formula/mill.rb"
-if [ -n "$(git -C "$TAP" status --porcelain)" ]; then
-  git -C "$TAP" commit -q -am "mill ${PROD#v}" && git -C "$TAP" push -q origin HEAD
+git -C "$TAP" add Formula/mill.rb   # robust whether mill.rb is tracked or brand-new
+if ! git -C "$TAP" diff --cached --quiet; then
+  git -C "$TAP" commit -q -m "mill ${PROD#v}"
+  git -C "$TAP" push -q origin HEAD
   echo "==> tap published mill ${PROD#v}"
 else
   echo "==> tap already at mill ${PROD#v}"

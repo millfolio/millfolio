@@ -66,8 +66,10 @@ done
 TAP="$(mktemp -d)/homebrew-tap"
 git clone -q git@github.com:millfolio/homebrew-tap.git "$TAP"
 cp "$VAULT/cli/dist/homebrew/mill-dev.rb" "$TAP/Formula/mill-dev.rb"
-if [ -n "$(git -C "$TAP" status --porcelain)" ]; then
-  git -C "$TAP" commit -q -am "mill-dev ${VERSION#v}" && git -C "$TAP" push -q origin HEAD
+git -C "$TAP" add Formula/mill-dev.rb   # `-a`/`-am` skips an UNTRACKED new formula (first dev release)
+if ! git -C "$TAP" diff --cached --quiet; then
+  git -C "$TAP" commit -q -m "mill-dev ${VERSION#v}"
+  git -C "$TAP" push -q origin HEAD
   echo "==> tap published mill-dev ${VERSION#v}"
 else
   echo "==> tap already at mill-dev ${VERSION#v}"
