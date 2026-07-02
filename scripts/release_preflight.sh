@@ -62,7 +62,7 @@ compile() {  # $1 = subdir under the extracted bundle ; $2 = mojo-build args (on
   ( cd "$ROOT/vault" && pixi run bash -c "cd '$EX/$1' && mkdir -p build && mojo build $2" )
 }
 compile "privacy_box/privacy_box" \
-  "src/privacy_box.mojo -I ../flare -I ../json -I ../jinja2.mojo/src -I ../logging.mojo/src -o build/privacy_box"
+  "src/privacy_box.mojo -I ../flare -I ../json -I ../jinja2.mojo/src -I ../logging.mojo/src -I ../../millfolio/millfolio/pkgs -o build/privacy_box"
 compile "app" \
   "src/server.mojo -I src -I ../privacy_box/privacy_box/src -I ../privacy_box/flare -I ../privacy_box/json -I ../privacy_box/jinja2.mojo/src -I ../privacy_box/logging.mojo/src -I ../millfolio/millfolio/pkgs -o build/millfolio-server"
 
