@@ -4,17 +4,19 @@
 # components, so a packaging gap fails HERE (before the tag) instead of at install time
 # for users.
 #
-# The guard: `package_bundle.sh` now BUILDS all four of our Mojo binaries (engine
-# server + download, privacy_box, app millfolio-server) inside the component
-# packagers — they ship PREBUILT, no on-device `mojo build` at install time. So a
-# module that wasn't vendored into a packager's include set (the v0.4.30/runqueue
-# class of bug) fails the packager's `mojo build` HERE, before the tag — there is
-# no separate install-time compile left to catch it. (Previously this script
-# re-ran the installer's `mojo build` against the extracted bundle; that compile
-# now lives in the packagers, so the extra step is gone.)
+# The guard has two halves, because the binaries split into two build models:
+#   • privacy_box + the app server + millfolio ship PREBUILT — their (CPU-only)
+#     packagers `mojo build` them, so a vendoring gap (the v0.4.30/runqueue class
+#     of bug) fails inside `package_bundle.sh` HERE, before the tag. We then assert
+#     those three binaries are actually in the bundle.
+#   • the engine ships SOURCE and is compiled ON-DEVICE — its AOT GPU/Metal kernels
+#     can't build on the GPU-less GitHub CI runner ("Unknown GPU architecture
+#     detected"). So THIS local, GPU-equipped preflight is the ONLY place its full
+#     bundle compile is exercised: we run the installer's exact `mojo build` against
+#     the extracted engine source (catches a missing jinja2/flare vendoring gap).
 #
-# Slow (builds the engine + app web, then compiles all four binaries) — that's the
-# point; releases are rare and a broken one is expensive. Needs the dev pixi envs.
+# Slow (builds the engine + app web, then compiles) — that's the point; releases
+# are rare and a broken one is expensive. Needs the dev pixi envs.
 #
 #   moon run release:preflight        (or: bash scripts/release_preflight.sh)
 set -euo pipefail
@@ -46,23 +48,31 @@ echo "==> codegen prompt examples compile against the vault package…"
 ( cd "$ROOT/vault" && pixi run bash scripts/check_prompt_examples.sh )
 echo "    ✓ prompt examples compile"
 
-echo "==> [1/2] building millfolio.zip locally (compiles all four prebuilt binaries)…"
-# package_bundle.sh runs every component packager, and each packager now `mojo
-# build`s its binary (engine server+download, privacy_box, app millfolio-server)
-# with the exact include set the installer used — so a vendoring gap or a broken
-# example fails RIGHT HERE.
+echo "==> [1/3] building millfolio.zip locally (compiles the 3 prebuilt CPU binaries)…"
+# package_bundle.sh runs every component packager. The privacy_box + app + millfolio
+# packagers `mojo build` their binaries with the exact include set the installer
+# used, so a vendoring gap or a broken example fails RIGHT HERE. The engine packager
+# ships source (no build).
 ( cd "$ROOT/vault" && bash scripts/package_bundle.sh "$OUT" )
 [[ -s "$OUT" ]] || { echo "error: package_bundle.sh produced no millfolio.zip" >&2; exit 1; }
 
-echo "==> [2/2] confirming the bundle carries the four PREBUILT binaries…"
 EX="$TMP/extract"; mkdir -p "$EX"; unzip -q "$OUT" -d "$EX"
-for b in runner/inference-server/build/server \
-         runner/inference-server/build/download \
-         privacy_box/privacy_box/build/privacy_box \
+
+echo "==> [2/3] confirming the bundle carries the 3 PREBUILT CPU binaries…"
+for b in privacy_box/privacy_box/build/privacy_box \
          app/build/millfolio-server \
          millfolio/millfolio/build/millfolio; do
   [[ -x "$EX/$b" ]] || { echo "error: bundle missing prebuilt binary: $b" >&2; exit 1; }
   echo "    ✓ $b"
 done
 
-echo "✅ GPU gates pass + bundle builds with all prebuilt binaries (engine + privacy_box + app + millfolio). Safe to release."
+echo "==> [3/3] compile-checking the ENGINE from the bundle SOURCE — the on-device build…"
+# The engine ships source + compiles on-device; CI can't build it (no GPU). This
+# GPU-equipped preflight is the only place its full bundle compile runs — the SAME
+# `mojo build` the installer (Bootstrapper.installServer) runs, against the extracted
+# engine source, so a missing jinja2/flare vendoring gap fails here before the tag.
+[[ -f "$EX/runner/inference-server/src/server.mojo" ]] || { echo "error: engine bundle missing SOURCE src/server.mojo" >&2; exit 1; }
+( cd "$ROOT/engine" && pixi run bash -c "cd '$EX/runner/inference-server' && mkdir -p build && mojo build src/server.mojo -I ../jinja2.mojo/src -I ../flare -o build/server" )
+echo "    ✓ engine compiles from bundle source"
+
+echo "✅ GPU gates pass + bundle builds (privacy_box + app + millfolio prebuilt) + engine compiles on-device. Safe to release."
