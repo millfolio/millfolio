@@ -37,6 +37,25 @@ else
   echo "   ✗ tap formula is $TAP_VERSION, expected ${VERSION#v}"; ok=0
 fi
 
+# 3. bundle checksum published in the tap (what `mill install` verifies against).
+#    A missing checksum only WARNS (pre-checksum releases predate this); set
+#    VERIFY_BUNDLE_HASH=1 to also download millfolio.zip and confirm it matches.
+CK_SHA="$(curl -fsSL "https://raw.githubusercontent.com/millfolio/homebrew-tap/HEAD/checksums/millfolio-$VERSION.sha256" 2>/dev/null | awk '{print $1}' || true)"
+if [ -n "$CK_SHA" ]; then
+  echo "   ✓ tap bundle checksum published ($CK_SHA)"
+  if [ "${VERIFY_BUNDLE_HASH:-0}" = 1 ]; then
+    TMPB="$(mktemp -d)"
+    if gh release download "$VERSION" -R millfolio/vault -p millfolio.zip -D "$TMPB" --clobber 2>/dev/null; then
+      GOT="$(shasum -a 256 "$TMPB/millfolio.zip" | awk '{print $1}')"
+      if [ "$GOT" = "$CK_SHA" ]; then echo "   ✓ millfolio.zip matches tap checksum"
+      else echo "   ✗ millfolio.zip sha $GOT != tap $CK_SHA"; ok=0; fi
+    else echo "   ✗ could not download millfolio.zip to verify"; ok=0; fi
+    rm -rf "$TMPB"
+  fi
+else
+  echo "   ⚠ no tap bundle checksum for $VERSION (mill install will install it unverified)"
+fi
+
 if [ "$ok" = 1 ]; then
   echo "✅ $VERSION is live — both assets attached, tap → ${VERSION#v}"
 else

@@ -61,16 +61,26 @@ for asset in millfolio.zip mill-macos.tar.gz; do
   done
 done
 
-# 3. bump the DEV Homebrew formula (mill-dev) + publish to the tap
+# 3. bump the DEV Homebrew formula (mill-dev) + publish to the tap, and publish
+#    millfolio.zip's sha256 into the tap so `mill install` can verify the bundle
+#    before unpacking+compiling it. The tap is a DIFFERENT repo from the release
+#    assets, so a swapped asset can't forge the hash. See
+#    Bootstrapper.expectedBundleSHA256.
 ( cd "$VAULT/cli" && MILL_REPO=millfolio/vault dist/homebrew/update-formula.sh "$VERSION" --dev )
 TAP="$(mktemp -d)/homebrew-tap"
 git clone -q git@github.com:millfolio/homebrew-tap.git "$TAP"
 cp "$VAULT/cli/dist/homebrew/mill-dev.rb" "$TAP/Formula/mill-dev.rb"
-git -C "$TAP" add Formula/mill-dev.rb   # `-a`/`-am` skips an UNTRACKED new formula (first dev release)
+BUNDLE_DIR="$(mktemp -d)"
+gh release download "$VERSION" -R millfolio/vault -p millfolio.zip -D "$BUNDLE_DIR" --clobber
+BUNDLE_SHA="$(shasum -a 256 "$BUNDLE_DIR/millfolio.zip" | awk '{print $1}')"
+mkdir -p "$TAP/checksums"
+echo "$BUNDLE_SHA  millfolio.zip" > "$TAP/checksums/millfolio-$VERSION.sha256"
+echo "==> bundle sha256 $BUNDLE_SHA → checksums/millfolio-$VERSION.sha256"
+git -C "$TAP" add Formula/mill-dev.rb "checksums/millfolio-$VERSION.sha256"   # `-a`/`-am` skips an UNTRACKED new formula (first dev release)
 if ! git -C "$TAP" diff --cached --quiet; then
   git -C "$TAP" commit -q -m "mill-dev ${VERSION#v}"
   git -C "$TAP" push -q origin HEAD
-  echo "==> tap published mill-dev ${VERSION#v}"
+  echo "==> tap published mill-dev ${VERSION#v} (+ bundle checksum)"
 else
   echo "==> tap already at mill-dev ${VERSION#v}"
 fi

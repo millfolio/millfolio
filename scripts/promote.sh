@@ -49,6 +49,19 @@ trap 'rm -rf "$TMPD"' EXIT
 gh release download "$SRC" -R "$REPO" -p millfolio.zip -p mill-macos.tar.gz -D "$TMPD" --clobber
 [ -s "$TMPD/millfolio.zip" ] && [ -s "$TMPD/mill-macos.tar.gz" ] || { echo "asset download failed" >&2; exit 1; }
 
+# 4b. Integrity gate: the bundle we're about to ship to prod MUST match the
+# checksum the dev flow published for the tested rc — proves prod is byte-identical
+# to what you actually tested, not just "some asset with the right name".
+BUNDLE_SHA="$(shasum -a 256 "$TMPD/millfolio.zip" | awk '{print $1}')"
+RC_SHA="$(curl -fsSL "https://raw.githubusercontent.com/millfolio/homebrew-tap/HEAD/checksums/millfolio-$SRC.sha256" 2>/dev/null | awk '{print $1}' || true)"
+if [ -n "$RC_SHA" ] && [ "$RC_SHA" != "$BUNDLE_SHA" ]; then
+  echo "error: promoted bundle sha ($BUNDLE_SHA) != tested $SRC checksum ($RC_SHA)." >&2
+  echo "       Refusing to promote an artifact that differs from what was tested." >&2
+  exit 1
+fi
+[ -n "$RC_SHA" ] && echo "==> integrity ✓ bundle matches tested $SRC ($BUNDLE_SHA)" \
+  || echo "==> note: no tap checksum for $SRC (pre-checksum rc) — skipping integrity match"
+
 # 5. create the clean prod release at the SAME commit, marked latest, with the COPIES
 if gh release view "$PROD" -R "$REPO" >/dev/null 2>&1; then
   echo "==> release $PROD already exists — re-uploading assets (clobber)"
@@ -65,11 +78,15 @@ echo "==> prod release $PROD published (latest)"
 TAP="$(mktemp -d)/homebrew-tap"
 git clone -q git@github.com:millfolio/homebrew-tap.git "$TAP"
 cp "$VAULT/cli/dist/homebrew/mill.rb" "$TAP/Formula/mill.rb"
-git -C "$TAP" add Formula/mill.rb   # robust whether mill.rb is tracked or brand-new
+# Publish the prod bundle's sha256 (same bytes as the tested rc) so `mill install`
+# verifies millfolio.zip against the tap before unpacking+compiling it.
+mkdir -p "$TAP/checksums"
+echo "$BUNDLE_SHA  millfolio.zip" > "$TAP/checksums/millfolio-$PROD.sha256"
+git -C "$TAP" add Formula/mill.rb "checksums/millfolio-$PROD.sha256"   # robust whether mill.rb is tracked or brand-new
 if ! git -C "$TAP" diff --cached --quiet; then
   git -C "$TAP" commit -q -m "mill ${PROD#v}"
   git -C "$TAP" push -q origin HEAD
-  echo "==> tap published mill ${PROD#v}"
+  echo "==> tap published mill ${PROD#v} (+ bundle checksum)"
 else
   echo "==> tap already at mill ${PROD#v}"
 fi
