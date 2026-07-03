@@ -1,0 +1,206 @@
+Transaction Date,Clearing Date,Description,Merchant,Category,Type,Amount (USD)
+1/1/2026,1/2/2026,Chipotle,Chipotle,Dining,Purchase,12.67
+1/2/2026,1/3/2026,Trader Joes,Trader Joes,Groceries,Purchase,65.11
+1/3/2026,1/4/2026,Netflix,Netflix,Subscriptions,Purchase,15.49
+1/3/2026,1/4/2026,Blue Bottle Coffee,Blue Bottle Coffee,Dining,Purchase,6.24
+1/4/2026,1/5/2026,Amazon,Amazon,Shopping,Purchase,37.57
+1/5/2026,1/6/2026,Starbucks,Starbucks,Dining,Purchase,7.39
+1/6/2026,1/7/2026,Blue Bottle Coffee,Blue Bottle Coffee,Dining,Purchase,11.68
+1/7/2026,1/8/2026,Amazon,Amazon,Shopping,Purchase,23.22
+1/8/2026,1/9/2026,Spotify,Spotify,Subscriptions,Purchase,11.99
+1/9/2026,1/10/2026,Apple Store,Apple Store,Shopping,Purchase,142.33
+1/11/2026,1/12/2026,Sweetgreen,Sweetgreen,Dining,Purchase,16.04
+1/11/2026,1/12/2026,Trader Joes,Trader Joes,Groceries,Purchase,25.35
+1/12/2026,1/13/2026,Trader Joes,Trader Joes,Groceries,Purchase,84.44
+1/12/2026,1/13/2026,Trader Joes,Trader Joes,Groceries,Purchase,49.75
+1/12/2026,1/13/2026,Payment Thank You,Payment Thank You,Payment,Payment,-853.41
+1/13/2026,1/14/2026,iCloud,iCloud,Subscriptions,Purchase,2.99
+1/14/2026,1/15/2026,Blue Bottle Coffee,Blue Bottle Coffee,Dining,Purchase,9.53
+1/14/2026,1/15/2026,Trader Joes,Trader Joes,Groceries,Purchase,66.47
+1/15/2026,1/16/2026,Starbucks,Starbucks,Dining,Purchase,6.33
+1/16/2026,1/17/2026,Sweetgreen,Sweetgreen,Dining,Purchase,17.90
+1/18/2026,1/19/2026,Sweetgreen,Sweetgreen,Dining,Purchase,14.81
+1/19/2026,1/20/2026,Blue Bottle Coffee,Blue Bottle Coffee,Dining,Purchase,9.42
+1/19/2026,1/20/2026,Amazon,Amazon,Shopping,Purchase,114.62
+1/20/2026,1/21/2026,Chipotle,Chipotle,Dining,Purchase,11.09
+1/22/2026,1/23/2026,Amazon,Amazon,Shopping,Purchase,53.99
+1/22/2026,1/23/2026,Starbucks,Starbucks,Dining,Purchase,6.54
+1/23/2026,1/24/2026,Trader Joes,Trader Joes,Groceries,Purchase,33.16
+1/24/2026,1/25/2026,Trader Joes,Trader Joes,Groceries,Purchase,50.09
+1/24/2026,1/25/2026,Apple Store,Apple Store,Shopping,Purchase,140.70
+1/27/2026,1/28/2026,Chipotle,Chipotle,Dining,Purchase,20.53
+1/28/2026,1/29/2026,Amazon,Amazon,Shopping,Purchase,30.35
+1/28/2026,1/29/2026,Whole Foods Market,Whole Foods Market,Groceries,Purchase,140.06
+1/30/2026,1/31/2026,Trader Joes,Trader Joes,Groceries,Purchase,85.55
+1/31/2026,2/1/2026,Starbucks,Starbucks,Dining,Purchase,5.93
+2/1/2026,2/2/2026,Sweetgreen,Sweetgreen,Dining,Purchase,15.42
+2/2/2026,2/3/2026,Chipotle,Chipotle,Dining,Purchase,12.59
+2/2/2026,2/3/2026,Blue Bottle Coffee,Blue Bottle Coffee,Dining,Purchase,11.09
+2/3/2026,2/4/2026,Netflix,Netflix,Subscriptions,Purchase,15.49
+2/4/2026,2/5/2026,Trader Joes,Trader Joes,Groceries,Purchase,93.39
+2/4/2026,2/5/2026,Starbucks,Starbucks,Dining,Purchase,4.83
+2/5/2026,2/6/2026,Chipotle,Chipotle,Dining,Purchase,16.92
+2/6/2026,2/7/2026,Blue Bottle Coffee,Blue Bottle Coffee,Dining,Purchase,9.85
+2/7/2026,2/8/2026,Apple Store,Apple Store,Shopping,Purchase,225.91
+2/7/2026,2/8/2026,Apple Store,Apple Store,Shopping,Purchase,46.83
+2/8/2026,2/9/2026,Spotify,Spotify,Subscriptions,Purchase,11.99
+2/8/2026,2/9/2026,Whole Foods Market,Whole Foods Market,Groceries,Purchase,100.95
+2/8/2026,2/9/2026,Blue Bottle Coffee,Blue Bottle Coffee,Dining,Purchase,8.91
+2/9/2026,2/10/2026,Blue Bottle Coffee,Blue Bottle Coffee,Dining,Purchase,5.01
+2/10/2026,2/11/2026,Trader Joes,Trader Joes,Groceries,Purchase,59.53
+2/10/2026,2/11/2026,Chipotle,Chipotle,Dining,Purchase,19.03
+2/11/2026,2/12/2026,Apple Store,Apple Store,Shopping,Purchase,74.89
+2/12/2026,2/13/2026,Blue Bottle Coffee,Blue Bottle Coffee,Dining,Purchase,5.21
+2/12/2026,2/13/2026,Amazon,Amazon,Shopping,Purchase,53.10
+2/12/2026,2/13/2026,Payment Thank You,Payment Thank You,Payment,Payment,-811.10
+2/13/2026,2/14/2026,iCloud,iCloud,Subscriptions,Purchase,2.99
+2/14/2026,2/15/2026,Whole Foods Market,Whole Foods Market,Groceries,Purchase,81.08
+2/15/2026,2/16/2026,Blue Bottle Coffee,Blue Bottle Coffee,Dining,Purchase,5.94
+2/16/2026,2/17/2026,Amazon,Amazon,Shopping,Purchase,33.28
+2/17/2026,2/18/2026,Apple Store,Apple Store,Shopping,Purchase,204.85
+2/19/2026,2/20/2026,Trader Joes,Trader Joes,Groceries,Purchase,89.62
+2/21/2026,2/22/2026,Apple Store,Apple Store,Shopping,Purchase,68.16
+2/21/2026,2/22/2026,Amazon,Amazon,Shopping,Purchase,116.68
+2/22/2026,2/23/2026,Amazon,Amazon,Shopping,Purchase,42.76
+2/24/2026,2/25/2026,Apple Store,Apple Store,Shopping,Purchase,54.60
+2/24/2026,2/25/2026,Chipotle,Chipotle,Dining,Purchase,12.27
+2/25/2026,2/26/2026,Sweetgreen,Sweetgreen,Dining,Purchase,12.40
+2/26/2026,2/27/2026,Whole Foods Market,Whole Foods Market,Groceries,Purchase,140.80
+2/27/2026,2/28/2026,Trader Joes,Trader Joes,Groceries,Purchase,65.44
+3/1/2026,3/2/2026,Blue Bottle Coffee,Blue Bottle Coffee,Dining,Purchase,8.84
+3/2/2026,3/3/2026,Amazon,Amazon,Shopping,Purchase,88.26
+3/3/2026,3/4/2026,Netflix,Netflix,Subscriptions,Purchase,15.49
+3/3/2026,3/4/2026,Chipotle,Chipotle,Dining,Purchase,12.06
+3/3/2026,3/4/2026,Sweetgreen,Sweetgreen,Dining,Purchase,13.67
+3/4/2026,3/5/2026,Apple Store,Apple Store,Shopping,Purchase,91.72
+3/4/2026,3/5/2026,Trader Joes,Trader Joes,Groceries,Purchase,22.68
+3/5/2026,3/6/2026,Trader Joes,Trader Joes,Groceries,Purchase,61.25
+3/5/2026,3/6/2026,Amazon Refund,Amazon Refund,Refund,Payment,-60.16
+3/6/2026,3/7/2026,Sweetgreen,Sweetgreen,Dining,Purchase,18.17
+3/8/2026,3/9/2026,Spotify,Spotify,Subscriptions,Purchase,11.99
+3/8/2026,3/9/2026,Apple Store,Apple Store,Shopping,Purchase,210.76
+3/10/2026,3/11/2026,Chipotle,Chipotle,Dining,Purchase,22.98
+3/11/2026,3/12/2026,Chipotle,Chipotle,Dining,Purchase,10.73
+3/12/2026,3/13/2026,Chipotle,Chipotle,Dining,Purchase,13.23
+3/12/2026,3/13/2026,Payment Thank You,Payment Thank You,Payment,Payment,-610.63
+3/13/2026,3/14/2026,iCloud,iCloud,Subscriptions,Purchase,2.99
+3/13/2026,3/14/2026,Apple Store,Apple Store,Shopping,Purchase,76.76
+3/13/2026,3/14/2026,Whole Foods Market,Whole Foods Market,Groceries,Purchase,47.88
+3/14/2026,3/15/2026,Whole Foods Market,Whole Foods Market,Groceries,Purchase,38.38
+3/14/2026,3/15/2026,Starbucks,Starbucks,Dining,Purchase,7.12
+3/15/2026,3/16/2026,Amazon,Amazon,Shopping,Purchase,77.07
+3/15/2026,3/16/2026,Trader Joes,Trader Joes,Groceries,Purchase,27.49
+3/18/2026,3/19/2026,Starbucks,Starbucks,Dining,Purchase,6.18
+3/18/2026,3/19/2026,Whole Foods Market,Whole Foods Market,Groceries,Purchase,70.98
+3/19/2026,3/20/2026,Amazon Refund,Amazon Refund,Refund,Payment,-62.85
+3/23/2026,3/24/2026,Trader Joes,Trader Joes,Groceries,Purchase,47.82
+3/24/2026,3/25/2026,Starbucks,Starbucks,Dining,Purchase,8.42
+3/24/2026,3/25/2026,Blue Bottle Coffee,Blue Bottle Coffee,Dining,Purchase,10.98
+3/28/2026,3/29/2026,Amazon,Amazon,Shopping,Purchase,105.06
+3/28/2026,3/29/2026,Blue Bottle Coffee,Blue Bottle Coffee,Dining,Purchase,6.50
+3/30/2026,3/31/2026,Apple Store,Apple Store,Shopping,Purchase,70.16
+4/1/2026,4/2/2026,Blue Bottle Coffee,Blue Bottle Coffee,Dining,Purchase,6.17
+4/1/2026,4/2/2026,Blue Bottle Coffee,Blue Bottle Coffee,Dining,Purchase,7.49
+4/2/2026,4/3/2026,Chipotle,Chipotle,Dining,Purchase,14.27
+4/3/2026,4/4/2026,Netflix,Netflix,Subscriptions,Purchase,15.49
+4/3/2026,4/4/2026,Whole Foods Market,Whole Foods Market,Groceries,Purchase,50.34
+4/3/2026,4/4/2026,Chipotle,Chipotle,Dining,Purchase,11.68
+4/5/2026,4/6/2026,Amazon,Amazon,Shopping,Purchase,52.10
+4/7/2026,4/8/2026,Amazon,Amazon,Shopping,Purchase,116.34
+4/8/2026,4/9/2026,Spotify,Spotify,Subscriptions,Purchase,11.99
+4/8/2026,4/9/2026,Amazon,Amazon,Shopping,Purchase,12.20
+4/10/2026,4/11/2026,Sweetgreen,Sweetgreen,Dining,Purchase,15.02
+4/12/2026,4/13/2026,Payment Thank You,Payment Thank You,Payment,Payment,-1023.16
+4/13/2026,4/14/2026,iCloud,iCloud,Subscriptions,Purchase,2.99
+4/14/2026,4/15/2026,Chipotle,Chipotle,Dining,Purchase,19.00
+4/14/2026,4/15/2026,Sweetgreen,Sweetgreen,Dining,Purchase,14.82
+4/15/2026,4/16/2026,Blue Bottle Coffee,Blue Bottle Coffee,Dining,Purchase,7.65
+4/19/2026,4/20/2026,Amazon,Amazon,Shopping,Purchase,75.56
+4/19/2026,4/20/2026,Whole Foods Market,Whole Foods Market,Groceries,Purchase,70.51
+4/20/2026,4/21/2026,Apple Store,Apple Store,Shopping,Purchase,120.61
+4/20/2026,4/21/2026,Blue Bottle Coffee,Blue Bottle Coffee,Dining,Purchase,8.33
+4/25/2026,4/26/2026,Trader Joes,Trader Joes,Groceries,Purchase,81.74
+4/25/2026,4/26/2026,Blue Bottle Coffee,Blue Bottle Coffee,Dining,Purchase,9.55
+4/26/2026,4/27/2026,Starbucks,Starbucks,Dining,Purchase,4.36
+4/27/2026,4/28/2026,Trader Joes,Trader Joes,Groceries,Purchase,55.25
+4/27/2026,4/28/2026,Blue Bottle Coffee,Blue Bottle Coffee,Dining,Purchase,9.89
+4/28/2026,4/29/2026,Blue Bottle Coffee,Blue Bottle Coffee,Dining,Purchase,5.61
+4/28/2026,4/29/2026,Whole Foods Market,Whole Foods Market,Groceries,Purchase,133.51
+5/2/2026,5/3/2026,Whole Foods Market,Whole Foods Market,Groceries,Purchase,97.64
+5/2/2026,5/3/2026,Trader Joes,Trader Joes,Groceries,Purchase,55.32
+5/3/2026,5/4/2026,Netflix,Netflix,Subscriptions,Purchase,15.49
+5/6/2026,5/7/2026,Amazon,Amazon,Shopping,Purchase,108.35
+5/6/2026,5/7/2026,Apple Store,Apple Store,Shopping,Purchase,225.36
+5/8/2026,5/9/2026,Spotify,Spotify,Subscriptions,Purchase,11.99
+5/8/2026,5/9/2026,Blue Bottle Coffee,Blue Bottle Coffee,Dining,Purchase,10.80
+5/8/2026,5/9/2026,Chipotle,Chipotle,Dining,Purchase,20.49
+5/9/2026,5/10/2026,Chipotle,Chipotle,Dining,Purchase,15.60
+5/11/2026,5/12/2026,Sweetgreen,Sweetgreen,Dining,Purchase,18.25
+5/11/2026,5/12/2026,Trader Joes,Trader Joes,Groceries,Purchase,32.10
+5/12/2026,5/13/2026,Blue Bottle Coffee,Blue Bottle Coffee,Dining,Purchase,4.98
+5/12/2026,5/13/2026,Payment Thank You,Payment Thank You,Payment,Payment,-807.60
+5/13/2026,5/14/2026,iCloud,iCloud,Subscriptions,Purchase,2.99
+5/13/2026,5/14/2026,Whole Foods Market,Whole Foods Market,Groceries,Purchase,60.13
+5/13/2026,5/14/2026,Amazon,Amazon,Shopping,Purchase,57.18
+5/16/2026,5/17/2026,Apple Store,Apple Store,Shopping,Purchase,20.36
+5/16/2026,5/17/2026,Sweetgreen,Sweetgreen,Dining,Purchase,14.09
+5/17/2026,5/18/2026,Blue Bottle Coffee,Blue Bottle Coffee,Dining,Purchase,8.16
+5/17/2026,5/18/2026,Chipotle,Chipotle,Dining,Purchase,15.54
+5/18/2026,5/19/2026,Amazon,Amazon,Shopping,Purchase,96.01
+5/18/2026,5/19/2026,Apple Store,Apple Store,Shopping,Purchase,230.49
+5/20/2026,5/21/2026,Whole Foods Market,Whole Foods Market,Groceries,Purchase,46.98
+5/20/2026,5/21/2026,Amazon,Amazon,Shopping,Purchase,27.74
+5/21/2026,5/22/2026,Chipotle,Chipotle,Dining,Purchase,14.69
+5/22/2026,5/23/2026,Sweetgreen,Sweetgreen,Dining,Purchase,17.33
+5/22/2026,5/23/2026,Amazon,Amazon,Shopping,Purchase,44.28
+5/24/2026,5/25/2026,Apple Store,Apple Store,Shopping,Purchase,23.46
+5/25/2026,5/26/2026,Blue Bottle Coffee,Blue Bottle Coffee,Dining,Purchase,9.38
+5/25/2026,5/26/2026,Whole Foods Market,Whole Foods Market,Groceries,Purchase,118.70
+5/27/2026,5/28/2026,Starbucks,Starbucks,Dining,Purchase,5.32
+5/28/2026,5/29/2026,Blue Bottle Coffee,Blue Bottle Coffee,Dining,Purchase,7.99
+5/29/2026,5/30/2026,Starbucks,Starbucks,Dining,Purchase,6.98
+5/29/2026,5/30/2026,Trader Joes,Trader Joes,Groceries,Purchase,78.78
+5/30/2026,5/31/2026,Trader Joes,Trader Joes,Groceries,Purchase,64.24
+5/30/2026,5/31/2026,Chipotle,Chipotle,Dining,Purchase,17.64
+6/1/2026,6/2/2026,Trader Joes,Trader Joes,Groceries,Purchase,65.22
+6/3/2026,6/4/2026,Netflix,Netflix,Subscriptions,Purchase,15.49
+6/3/2026,6/4/2026,Trader Joes,Trader Joes,Groceries,Purchase,80.12
+6/3/2026,6/4/2026,Whole Foods Market,Whole Foods Market,Groceries,Purchase,75.15
+6/4/2026,6/5/2026,Trader Joes,Trader Joes,Groceries,Purchase,58.94
+6/4/2026,6/5/2026,Sweetgreen,Sweetgreen,Dining,Purchase,12.09
+6/5/2026,6/6/2026,Trader Joes,Trader Joes,Groceries,Purchase,53.65
+6/5/2026,6/6/2026,Sweetgreen,Sweetgreen,Dining,Purchase,16.45
+6/8/2026,6/9/2026,Spotify,Spotify,Subscriptions,Purchase,11.99
+6/8/2026,6/9/2026,Apple Store,Apple Store,Shopping,Purchase,125.92
+6/8/2026,6/9/2026,Chipotle,Chipotle,Dining,Purchase,13.83
+6/9/2026,6/10/2026,Chipotle,Chipotle,Dining,Purchase,22.22
+6/10/2026,6/11/2026,Amazon,Amazon,Shopping,Purchase,51.02
+6/10/2026,6/11/2026,Apple Store,Apple Store,Shopping,Purchase,214.72
+6/11/2026,6/12/2026,Sweetgreen,Sweetgreen,Dining,Purchase,17.58
+6/12/2026,6/13/2026,Whole Foods Market,Whole Foods Market,Groceries,Purchase,93.28
+6/12/2026,6/13/2026,Blue Bottle Coffee,Blue Bottle Coffee,Dining,Purchase,5.14
+6/12/2026,6/13/2026,Payment Thank You,Payment Thank You,Payment,Payment,-1120.07
+6/13/2026,6/14/2026,iCloud,iCloud,Subscriptions,Purchase,2.99
+6/13/2026,6/14/2026,Apple Store,Apple Store,Shopping,Purchase,167.56
+6/14/2026,6/15/2026,Trader Joes,Trader Joes,Groceries,Purchase,43.48
+6/15/2026,6/16/2026,Chipotle,Chipotle,Dining,Purchase,18.96
+6/16/2026,6/17/2026,Amazon,Amazon,Shopping,Purchase,127.61
+6/16/2026,6/17/2026,Sweetgreen,Sweetgreen,Dining,Purchase,14.46
+6/17/2026,6/18/2026,Chipotle,Chipotle,Dining,Purchase,12.46
+6/17/2026,6/18/2026,Blue Bottle Coffee,Blue Bottle Coffee,Dining,Purchase,6.87
+6/21/2026,6/22/2026,Chipotle,Chipotle,Dining,Purchase,19.87
+6/21/2026,6/22/2026,Chipotle,Chipotle,Dining,Purchase,23.71
+6/23/2026,6/24/2026,Starbucks,Starbucks,Dining,Purchase,5.61
+6/23/2026,6/24/2026,Starbucks,Starbucks,Dining,Purchase,5.48
+6/25/2026,6/26/2026,Apple Store,Apple Store,Shopping,Purchase,42.60
+6/26/2026,6/27/2026,Apple Store,Apple Store,Shopping,Purchase,129.10
+6/26/2026,6/27/2026,Sweetgreen,Sweetgreen,Dining,Purchase,13.29
+6/27/2026,6/28/2026,Trader Joes,Trader Joes,Groceries,Purchase,82.01
+6/27/2026,6/28/2026,Amazon,Amazon,Shopping,Purchase,69.04
+6/28/2026,6/29/2026,Starbucks,Starbucks,Dining,Purchase,4.92
+6/29/2026,6/30/2026,Trader Joes,Trader Joes,Groceries,Purchase,94.56
+6/29/2026,6/30/2026,Trader Joes,Trader Joes,Groceries,Purchase,62.74
+6/30/2026,7/1/2026,Amazon,Amazon,Shopping,Purchase,64.26
+7/1/2026,7/2/2026,Chipotle,Chipotle,Dining,Purchase,17.53
+7/1/2026,7/2/2026,Whole Foods Market,Whole Foods Market,Groceries,Purchase,103.23
+7/3/2026,7/4/2026,Netflix,Netflix,Subscriptions,Purchase,15.49

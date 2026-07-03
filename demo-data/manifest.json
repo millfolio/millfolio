@@ -1,0 +1,43 @@
+{
+  "generator": "generate.py",
+  "base_date": "2026-07-03",
+  "seed": 42,
+  "total_transactions": 444,
+  "files": [
+    {
+      "name": "apple_card_2026.csv",
+      "kind": "csv",
+      "bytes": 14076,
+      "transactions": 205,
+      "sha256": "f722e2ec4f825167a579ed9414cd01b234edf652febdcb07ea9a731c0f340bc3"
+    },
+    {
+      "name": "chase_credit_2026.csv",
+      "kind": "csv",
+      "bytes": 7437,
+      "transactions": 146,
+      "sha256": "7a773d2159605df533dae2d890a68d9a177c3e5691c5e625647041a85c47721b"
+    },
+    {
+      "name": "citi_2026.csv",
+      "kind": "csv",
+      "bytes": 2536,
+      "transactions": 64,
+      "sha256": "fac63f2986b82bfca2a49490640f9861ed04a8fe81c1ac6374c5236f7664345e"
+    },
+    {
+      "name": "chase_checking_2026-06.pdf",
+      "kind": "pdf",
+      "bytes": 4568,
+      "transactions": 12,
+      "sha256": "50aa4905501ad1477da2791a35a4f2094ae1ad86d6424311a1f4089f4348a0b5"
+    },
+    {
+      "name": "bofa_visa_2026-06.pdf",
+      "kind": "pdf",
+      "bytes": 4382,
+      "transactions": 17,
+      "sha256": "fc6d61dea89808b70838e4e87513aa5e1200ceec509c7ca7411fc78d592b6aa0"
+    }
+  ]
+}
