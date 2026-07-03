@@ -4,17 +4,17 @@
 # components, so a packaging gap fails HERE (before the tag) instead of at install time
 # for users.
 #
-# Two layers, because they catch different bugs:
-#   1. `package_bundle.sh` — runs every component packager; catches packaging-SCRIPT
-#      failures (a `cp` of a missing path, a libs vendoring gap).
-#   2. compile the bundle — `mill install` BUILDS privacy_box + the app server at install
-#      time from the bundle's copied source, so a module that wasn't copied into the
-#      bundle (e.g. runqueue.mojo) only fails THERE. So we extract the bundle and run the
-#      SAME `mojo build` the installer runs. THIS is what catches the v0.4.30/runqueue
-#      class of bug before a release ships.
+# The guard: `package_bundle.sh` now BUILDS all four of our Mojo binaries (engine
+# server + download, privacy_box, app millfolio-server) inside the component
+# packagers — they ship PREBUILT, no on-device `mojo build` at install time. So a
+# module that wasn't vendored into a packager's include set (the v0.4.30/runqueue
+# class of bug) fails the packager's `mojo build` HERE, before the tag — there is
+# no separate install-time compile left to catch it. (Previously this script
+# re-ran the installer's `mojo build` against the extracted bundle; that compile
+# now lives in the packagers, so the extra step is gone.)
 #
-# Slow (builds the engine + app web, then compiles) — that's the point; releases are rare
-# and a broken one is expensive. Needs the dev pixi envs (run a normal build once first).
+# Slow (builds the engine + app web, then compiles all four binaries) — that's the
+# point; releases are rare and a broken one is expensive. Needs the dev pixi envs.
 #
 #   moon run release:preflight        (or: bash scripts/release_preflight.sh)
 set -euo pipefail
@@ -46,24 +46,23 @@ echo "==> codegen prompt examples compile against the vault package…"
 ( cd "$ROOT/vault" && pixi run bash scripts/check_prompt_examples.sh )
 echo "    ✓ prompt examples compile"
 
-echo "==> [1/3] building millfolio.zip locally…"
+echo "==> [1/2] building millfolio.zip locally (compiles all four prebuilt binaries)…"
+# package_bundle.sh runs every component packager, and each packager now `mojo
+# build`s its binary (engine server+download, privacy_box, app millfolio-server)
+# with the exact include set the installer used — so a vendoring gap or a broken
+# example fails RIGHT HERE.
 ( cd "$ROOT/vault" && bash scripts/package_bundle.sh "$OUT" )
 [[ -s "$OUT" ]] || { echo "error: package_bundle.sh produced no millfolio.zip" >&2; exit 1; }
 
-echo "==> [2/3] compile-checking the bundle ($(du -h "$OUT" | cut -f1)) — the install-time builds…"
+echo "==> [2/2] confirming the bundle carries the four PREBUILT binaries…"
 EX="$TMP/extract"; mkdir -p "$EX"; unzip -q "$OUT" -d "$EX"
+for b in runner/inference-server/build/server \
+         runner/inference-server/build/download \
+         privacy_box/privacy_box/build/privacy_box \
+         app/build/millfolio-server \
+         millfolio/millfolio/build/millfolio; do
+  [[ -x "$EX/$b" ]] || { echo "error: bundle missing prebuilt binary: $b" >&2; exit 1; }
+  echo "    ✓ $b"
+done
 
-# Run the SAME `mojo build` invocations the Bootstrapper runs at install time, against
-# the EXTRACTED bundle (so a module missing from the bundle fails here). Keep the -I sets
-# in sync with vault/cli/Sources/MillfolioCore/Bootstrapper.swift (installPrivacyBox /
-# installAppServer). Compile only — the FFI shims are dlopen'd at runtime, not linked.
-compile() {  # $1 = subdir under the extracted bundle ; $2 = mojo-build args (one string)
-  echo "    mojo build  (in $1)"
-  ( cd "$ROOT/vault" && pixi run bash -c "cd '$EX/$1' && mkdir -p build && mojo build $2" )
-}
-compile "privacy_box/privacy_box" \
-  "src/privacy_box.mojo -I ../flare -I ../json -I ../jinja2.mojo/src -I ../logging.mojo/src -I ../../millfolio/millfolio/pkgs -o build/privacy_box"
-compile "app" \
-  "src/server.mojo -I src -I ../privacy_box/privacy_box/src -I ../privacy_box/flare -I ../privacy_box/json -I ../privacy_box/jinja2.mojo/src -I ../privacy_box/logging.mojo/src -I ../millfolio/millfolio/pkgs -o build/millfolio-server"
-
-echo "✅ GPU gates pass + bundle builds AND compiles (privacy_box + app server). Safe to release."
+echo "✅ GPU gates pass + bundle builds with all prebuilt binaries (engine + privacy_box + app + millfolio). Safe to release."
