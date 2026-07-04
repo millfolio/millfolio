@@ -39,7 +39,39 @@ if [ "${RELEASE_SKIP_PREFLIGHT:-0}" != 1 ]; then
   }
 fi
 
-# 1. tag + push vault
+# 0.5 PIN SIBLINGS — freeze each sibling repo at its CURRENT main tip and commit the
+# list into vault as .github/bundle-pins.env, so the tagged CI bundle build checks out
+# these EXACT commits (reproducible + pinned to what this release was cut from) instead
+# of whatever each sibling's main happens to be whenever CI runs. The pins are read
+# LIVE from each remote here, so they auto-refresh every publish — "push a feature to a
+# sibling's main → cut an rc" still gets the latest, it's just frozen into the tag.
+# bundle.yml consumes this file only on tag builds; main/PR builds stay unpinned.
+# NOTE: keep this list identical to the checkouts in vault/.github/workflows/bundle.yml.
+PINS="$VAULT/.github/bundle-pins.env"
+BUNDLE_SIBLINGS=(engine app flare json jinja2.mojo lancedb.mojo pdftotext.mojo zlib.mojo csv.mojo docx.mojo logging.mojo)
+echo "==> pinning sibling repos to their current main tips"
+{
+  echo "# Sibling repo pins for a reproducible bundle build — WRITTEN BY scripts/release.sh."
+  echo "# <repo path>=<commit sha>, consumed by .github/workflows/bundle.yml. Do NOT hand-edit."
+  echo "# Cut for $VERSION at $(date -u +%Y-%m-%dT%H:%M:%SZ)."
+} > "$PINS.tmp"
+for repo in "${BUNDLE_SIBLINGS[@]}"; do
+  sha="$(git ls-remote "git@github.com:millfolio/${repo}.git" refs/heads/main | awk 'NR==1{print $1}')"
+  [ -n "$sha" ] || { echo "error: could not resolve main tip for millfolio/$repo (SSH loaded?)" >&2; rm -f "$PINS.tmp"; exit 1; }
+  echo "${repo}=${sha}" >> "$PINS.tmp"
+  printf '   %-18s %s\n' "$repo" "$sha"
+done
+mv "$PINS.tmp" "$PINS"
+git -C "$VAULT" add .github/bundle-pins.env
+if ! git -C "$VAULT" diff --cached --quiet -- .github/bundle-pins.env; then
+  git -C "$VAULT" commit -q -m "ci: pin siblings for $VERSION bundle build" -- .github/bundle-pins.env
+  git -C "$VAULT" push -q origin main
+  echo "==> committed + pushed bundle-pins.env for $VERSION"
+else
+  echo "==> bundle-pins.env unchanged since last publish"
+fi
+
+# 1. tag + push vault  (tags the pins commit above, so the bundle build reads it)
 git -C "$VAULT" fetch -q origin
 if git -C "$VAULT" ls-remote --tags --exit-code origin "refs/tags/$VERSION" >/dev/null 2>&1; then
   echo "==> tag $VERSION already on origin — skipping tag, will still wait for assets" >&2
