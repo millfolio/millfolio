@@ -1,11 +1,11 @@
 from vault import *
 
-# parse_descriptors — a human-written vault analysis program.
+# parse-location — a human-written vault analysis program.
 #
 # Run it over your real, indexed vault WITHOUT a model call:
 #
-#     mill run ./demo-data/programs/parse_descriptors.mojo
-#     mill run https://raw.githubusercontent.com/millfolio/millfolio/main/demo-data/programs/parse_descriptors.mojo
+#     mill run https://millfolio.app/parse-location.mojo
+#     mill run ./experiments/parse-location.mojo        # from a millfolio checkout
 #
 # It iterates every statement's reconciled transactions() and splits each Txn's
 # `.desc` into a best-effort (merchant, state, country). Bank/card descriptors
