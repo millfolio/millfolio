@@ -211,6 +211,52 @@ def _pd_parse(
     return Parsed(merch^, state^, country^)
 
 
+def _bump(mut names: List[String], mut counts: List[Int], key: String):
+    """Increment `key`'s tally in parallel name/count lists (insert at 1 if new)."""
+    for i in range(len(names)):
+        if names[i] == key:
+            counts[i] += 1
+            return
+    names.append(key.copy())
+    counts.append(1)
+
+
+def _has_digit_run(s: String, n: Int) -> Bool:
+    """True if `s` contains a run of >= n consecutive ASCII digits (a residual
+    store/account number the merchant extraction failed to strip)."""
+    var b = s.as_bytes()
+    var run = 0
+    for i in range(len(b)):
+        var c = Int(b[i])
+        if c >= 48 and c <= 57:
+            run += 1
+            if run >= n:
+                return True
+        else:
+            run = 0
+    return False
+
+
+def _print_top(names: List[String], counts: List[Int], k: Int) raises:
+    """Print the top-`k` (name, count) pairs by count, descending (selection sort)."""
+    var used = List[Bool]()
+    for _ in range(len(names)):
+        used.append(False)
+    var shown = 0
+    while shown < k and shown < len(names):
+        var best = -1
+        var bestc = -1
+        for i in range(len(names)):
+            if not used[i] and counts[i] > bestc:
+                bestc = counts[i]
+                best = i
+        if best < 0:
+            break
+        used[best] = True
+        shown += 1
+        print("  " + String(counts[best]) + "\t" + names[best])
+
+
 def main() raises:
     var files = manifest()
     var iso3 = _pd_iso3()
@@ -220,9 +266,13 @@ def main() raises:
     var total = 0
     var country_ok = 0
     var state_ok = 0
+    var merch_dirty = 0  # merchants still holding a 3+ digit run (imperfect strip)
+    var m_names = List[String]()
+    var m_counts = List[Int]()
+    var c_names = List[String]()
+    var c_counts = List[Int]()
+    var no_country = List[String]()  # sample of descriptors that parsed no region
 
-    print("desc  ->  [merchant] | state | country")
-    print("-------------------------------------------------------------------")
     for i in range(len(files)):
         progress("parsing descriptors in " + files[i].alias)
         var txns = transactions(files[i].alias)  # [] when not a statement
@@ -232,29 +282,53 @@ def main() raises:
                 continue
             var p = _pd_parse(x.desc, iso3, states, markers)
             total += 1
+            _bump(m_names, m_counts, p.merchant)
+            if _has_digit_run(p.merchant, 3):
+                merch_dirty += 1
             if p.country.byte_length() > 0:
                 country_ok += 1
+                _bump(c_names, c_counts, p.country)
+            elif len(no_country) < 25:
+                no_country.append(x.desc.copy())
             if p.state.byte_length() > 0:
                 state_ok += 1
-            var st = p.state if p.state.byte_length() > 0 else String("-")
-            var co = p.country if p.country.byte_length() > 0 else String("-")
-            print(x.desc + "  ->  [" + p.merchant + "] | " + st + " | " + co)
 
-    print("-------------------------------------------------------------------")
     if total == 0:
         print_answer(
             "No transactions found in the vault — index some statements first"
             " (`mill index <folder>`), then re-run."
         )
         return
+
+    print("=== top 30 merchants by transaction count (eyeball the brand quality) ===")
+    _print_top(m_names, m_counts, 30)
+    print("distinct merchants: " + String(len(m_names)) + " over " + String(total) + " transactions")
+    print(
+        "merchants still holding a 3+ digit run (imperfect strip): "
+        + String(merch_dirty)
+    )
+
+    print("\n=== country histogram ===")
+    _print_top(c_names, c_counts, 60)
+
+    print("\n=== 25 sample descriptors with NO country parsed ===")
+    print("(are these legitimately location-less — online / transfers / fees — or real misses?)")
+    for i in range(len(no_country)):
+        print("  " + no_country[i])
+
+    print("\n=== hit rates ===")
     print("country parsed: " + String(country_ok) + "/" + String(total))
     print("state parsed:   " + String(state_ok) + "/" + String(total))
     print_answer(
         "Parsed "
         + String(total)
-        + " descriptors — merchant on all of them, country on "
+        + " descriptors — "
+        + String(len(m_names))
+        + " distinct merchants ("
+        + String(merch_dirty)
+        + " with residual digits), country on "
         + String(country_ok)
         + ", US state on "
         + String(state_ok)
-        + ". (Descriptors without a trailing region parse to merchant only.)"
+        + "."
     )
