@@ -85,7 +85,10 @@ fi
 for asset in millfolio.zip mill-macos.tar.gz; do
   echo "==> waiting for $asset (timeout ~$((TIMEOUT_TRIES*SLEEP/60)) min)…"
   for i in $(seq 1 "$TIMEOUT_TRIES"); do
-    if gh release view "$VERSION" -R millfolio/vault --json assets -q '.assets[].name' 2>/dev/null | grep -qx "$asset"; then
+    # NB: capture then match via a here-string — piping `gh … | grep -q` lets grep
+    # close the pipe on first match, SIGPIPE-killing gh → exit 141 under `pipefail`.
+    got="$(gh release view "$VERSION" -R millfolio/vault --json assets -q '.assets[].name' 2>/dev/null || true)"
+    if grep -qxF "$asset" <<<"$got"; then
       echo "   ✓ $asset"; break
     fi
     [ "$i" = "$TIMEOUT_TRIES" ] && { echo "timed out waiting for $asset (check the Actions tab)" >&2; exit 1; }
