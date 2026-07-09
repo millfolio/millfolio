@@ -20,9 +20,10 @@ submodules. They stack in four layers; **dependencies point strictly downward.**
 └───────────────▲───────────────────────────────────────────────────────────┘
                 │  `from vault import *`  /  build_index
 ┌─ domain / tools  (the `vault` package) ───────────────────────────────────┐
-│  tool surface (manifest, search, transactions, file_chunks, ask_local,    │
-│  csv_rows, pdf_text, money, parse_amount, iso_date, print_answer, …)       │
+│  tool surface (manifest, search, transactions, spending, file_chunks,     │
+│  ask_local, csv_rows, pdf_text, money, parse_amount, iso_date, …)          │
 │  indexer (chunk+embed, LanceDB side-tables)   reconcile-validated extractor│
+│  tag derivation (keyword + AI rules)   storage seam (queue/log/kv/doc)     │
 └───────────────▲───────────────────────────────────────────────────────────┘
                 │  uses
 ┌─ low-level libraries  (domain-agnostic, pure Mojo, shipped as .mojopkg) ───┐
@@ -51,10 +52,13 @@ project. Each ships as a precompiled `.mojopkg`.
 `vault/core/src/vault` is **what millfolio knows about personal documents**. This is
 the "tools" layer; `money` is one of many. It is the confidentiality boundary on the
 tool side: every tool takes an **alias** (`file_0`, `col_2`), resolves it internally,
-and never returns a real path or name. It is split into **three sub-packages** with a
-clean dependency chain `tools → index → extract`; the top `vault/__init__.mojo`
-re-exports the surface so the `from vault import *` contract is identical whether
-consumed as source or as a precompiled `vault.mojopkg`:
+and never returns a real path or name. It is split into **five sub-packages**: the
+generated-program chain `tools → index → extract`, plus `derive` (category tags,
+built over extract/index/storage) and `storage` (the persistence seam, a leaf). The
+top `vault/__init__.mojo` re-exports the **tool surface** so the
+`from vault import *` contract is identical whether consumed as source or as a
+precompiled `vault.mojopkg` (`derive`/`storage` are internal — deliberately not in
+that contract):
 
 - **`vault/tools/`** — the tool surface a generated program imports via
   `from vault import *`: `manifest`, `search`, `file_chunks`, `csv_rows`,
@@ -67,6 +71,16 @@ consumed as source or as a precompiled `vault.mojopkg`:
 - **`vault/extract/`** — the **reconcile-validated** transaction extractor
   (statements → `Txn`s trusted only when they close against the statement's own
   arithmetic), plus amounts/dates parsing/formatting.
+- **`vault/derive/`** — deterministic **category tags** over the extracted
+  transactions: the editable rule registry (`categories.txt` — keyword rules +
+  AI yes/no rules), index-time tagging, and the ML-backfill ledger. Privacy split:
+  tag NAMES + scope notes go to codegen; the keyword RULES (real merchant strings)
+  stay on-device.
+- **`vault/storage/`** — the **persistence seam**: four store shapes as traits
+  (`QueueStore`/`LogStore`/`KvStore`/`DocStore`) with file-backed impls behind
+  `default_*_store()` factories. All queue/log/marker/registry I/O (app server +
+  vault) routes through it, so a real backend (LanceDB is the candidate) can be
+  swapped in per shape without touching call sites.
 
 It uses the low-level libs (flare → the engine over HTTP, lancedb → the index,
 pdf/docx/csv → extraction). Tests mirror the structure under `core/test/{index,extract}/`.
@@ -78,8 +92,8 @@ The long-running processes + orchestration that turn the tools into a service.
 | repo | process | role |
 |---|---|---|
 | `engine` | inference server `:8000` | ONE process serving a chat model **and** an embedding model; Mojo + Metal GPU |
-| `vault/privacy-box` | orchestrator (in-process / CLI) | brokers codegen (frontier vs local), enforces the **EgressGuard** (fails closed), compiles + runs the generated program under a **Seatbelt** sandbox (network-denied except loopback) |
-| `app/server` | web backend `:10000` | serves UI + REST + chat WS; embeds the orchestrator per-connection; streams progress |
+| `vault/privacy-box` | orchestrator (in-process / CLI) | brokers codegen (frontier vs local), enforces the **EgressGuard** (fails closed), compiles + runs the generated program under a **Seatbelt** sandbox (network-denied except loopback). The security boundary is sealed in its `security/` sub-package (`sandbox`/`egress`/`broker`/`budget`) |
+| `app/server` | web backend `:10000` | serves UI + REST + chat WS; embeds the orchestrator per-connection; streams progress. Internally: `server.mojo` is a thin composition root (route dispatcher + `main()`) over per-domain `handlers_*` modules (chat/vault/tags/models/…) and `work_orchestrator.mojo`, which runs ALL background engine work (indexing + AI-tag backfill) serially |
 | `vault/cli` | the `mill` Swift CLI + bootstrapper | provisions bundle + toolchain + weights, manages the launchd agents, runs `index`/`ask`/`start`/`stop` |
 
 **Runtime shape:** two processes (inference `:8000` GPU, app `:10000`), both under
@@ -96,8 +110,8 @@ zero changes to the real code.
 (millfolio.app). Clients talk to infra over HTTP/WS and hold **no** domain logic.
 
 ### Supporting
-- `scripts` — release orchestration (`publish`/`verify`: tag vault → CI builds the
-  bundle → bumps the Homebrew tap).
+- `scripts` — release orchestration (`publish`/`promote`/`verify`: dev rc → test →
+  promote the same artifacts to prod; see Packaging below).
 - `demo` + `demo-vault` (separate repos) — the public demo: replay codegen / real
   execution over a synthetic vault, reusing the real infra **unmodified** via config.
 - `browser-native.mojo` — a standalone Mojo lib: an agent-friendly wrapper around
@@ -135,8 +149,12 @@ to callers.
 - **Ship:** the install bundle carries **precompiled `.mojopkg`** (vault + libs) +
   prebuilt binaries + FFI shims — **no `.mojo` source** (commercial IP protection).
   Generated programs compile against the `.mojopkg`s.
-- **Release:** `moon run release:publish -- vX.Y.Z` tags vault → CI builds
-  `millfolio.zip` + the `mill` CLI → bumps the Homebrew tap.
+- **Release:** two channels, dev → prod. `moon run release:publish -- vX.Y.Z-rc.N`
+  tags vault as a **pre-release** → CI builds `millfolio.zip` + the `mill` CLI →
+  bumps the `mill-dev` tap formula. After testing,
+  `moon run release:promote -- vX.Y.Z` copies the **same tested artifacts** to a
+  clean prod release (no rebuild — prod is byte-identical to what was tested) and
+  bumps `mill`; `release:verify` confirms assets + tap match.
 - **Test:** each repo has a pure-Mojo hermetic suite (`pixi run test`) run in CI,
   with test files under `test/`. `vault:check` also runs `vault:precompile` (the
   same `.mojopkg` build the release performs) so a precompile-only break — a
@@ -150,10 +168,11 @@ parts I'd call out:
 
 - **The `vault` package is split into `vault.tools` / `vault.index` / `vault.extract`**
   (done — the three jobs that used to share one roof now have a clean
-  `tools → index → extract` dependency chain). The public tool contract stays small
-  and stable in `tools/` while the heavier indexer and extractor logic evolve behind
-  it. `money`/`parse_amount`/`iso_date` (in `extract/`) are the seed of a reusable
-  formatting/parsing group.
+  `tools → index → extract` dependency chain), **since joined by `vault.derive`
+  (tags) and `vault.storage` (the persistence seam)** without disturbing that
+  chain. The public tool contract stays small and stable in `tools/` while the
+  heavier indexer and extractor logic evolve behind it. `money`/`parse_amount`/
+  `iso_date` (in `extract/`) are the seed of a reusable formatting/parsing group.
 - **"Tools" is the right name for what the generated program sees**, and it's worth
   treating the `from vault import *` surface as a *versioned contract* (it already
   must match `privacy_box-system.md` exactly). Adding a tool = a deliberate API
@@ -164,7 +183,9 @@ parts I'd call out:
 - **One thing that blurs the layers:** `app/server` embeds the privacy-box
   orchestrator in-process rather than calling it as a service. That's fine for a
   single-box product, but it means "infra" has an internal call graph, not just a
-  wire protocol. If you ever scale out, that's the seam to formalize.
+  wire protocol. If you ever scale out, that's the seam to formalize. (The 2026-07
+  carve-up makes it findable: the orchestrator is reached from `handlers_chat` /
+  `work_orchestrator`, not from a god-file.)
 - **Cross-cutting concerns** (the alias contract, the sandbox profile, the FFI
   shims, the pinned nightly) live in a few specific places and are easy to get
   wrong from the outside — they belong to infra/domain and should never be a
