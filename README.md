@@ -10,7 +10,7 @@ github.com/millfolio; this repo pins them together and provides cross-project
 build/check/release tasks. Mojo builds run through `pixi` (moon wraps them as
 `system` tasks).
 
-**See also:** [ARCHITECTURE.md](ARCHITECTURE.md) (the four-layer design + the
+**See also:** [ARCHITECTURE.md](designs/ARCHITECTURE.md) (the four-layer design + the
 privacy model) and [CONTRIBUTING.md](CONTRIBUTING.md) (the submodule workflow).
 
 ## Layout

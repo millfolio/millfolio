@@ -8,7 +8,7 @@ make changes *in the submodule*, then bump the superproject's pointer to it.
 > 💬 Questions and ideas are welcome in
 > [GitHub Discussions](https://github.com/millfolio/millfolio/discussions).
 
-The big picture lives in [ARCHITECTURE.md](ARCHITECTURE.md); the setup and task
+The big picture lives in [ARCHITECTURE.md](designs/ARCHITECTURE.md); the setup and task
 basics are in the [README](README.md). This file is the *how to work in the
 repo* guide.
 
