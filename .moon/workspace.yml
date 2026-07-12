@@ -3,9 +3,10 @@ $schema: 'https://moonrepo.dev/schemas/workspace.json'
 # Explicit id → path map. IDs are clean (no dots); paths keep the on-disk names,
 # preserving the Mojo `-I ../sibling` layout invariant.
 projects:
-  app-ios: 'app/ios'
-  app-server: 'app/server'
-  app-web: 'app/web'
+  # app lives INSIDE the vault monorepo since the Tier-1 consolidation.
+  app-ios: 'vault/app/ios'
+  app-server: 'vault/app/server'
+  app-web: 'vault/app/web'
   browser-native: 'browser-native.mojo'
   csv: 'csv.mojo'
   docx: 'docx.mojo'
@@ -20,8 +21,8 @@ projects:
   vault: 'vault'
   website: 'website'
   zlib: 'zlib.mojo'
-  # Superproject-level orchestration (release pipeline).
-  release: 'scripts'
+  # The release pipeline lives with the product (vault monorepo).
+  release: 'vault/release'
 
 vcs:
   client: 'git'

@@ -1,7 +1,3 @@
-[submodule "app"]
-	path = app
-	url = git@github.com:millfolio/app.git
-	branch = main
 [submodule "csv.mojo"]
 	path = csv.mojo
 	url = git@github.com:millfolio/csv.mojo.git

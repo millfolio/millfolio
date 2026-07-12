@@ -4,14 +4,14 @@ This is the **moon workspace / git superproject** that ties together millfolio's
 repos (each a submodule). The personal-data-vault product is: a combined
 inference server (`engine`) + a privacy/sandbox orchestrator (`vault/privacy-box`)
 + vault tools/indexer (`vault/core`) + the `mill` CLI (`vault/cli`) + the web app
-(`app/`), shipped to users as one downloadable bundle and a Homebrew formula.
+(`vault/app/` — the app repo was merged INTO vault, Tier-1 consolidation 2026-07-12), shipped to users as one downloadable bundle and a Homebrew formula.
 
 Commands below are run from the superproject root (`/Users/mseritan/dev/millfolio`)
 unless noted. `moon` is at `~/.moon/bin/moon` and on PATH.
 
 ## Releases (two channels: dev → test → prod)
 
-The release pipeline lives in `scripts/` (moon project name: `release`). We ship to
+The release pipeline lives in `vault/release/` (moon project name: `release`). We ship to
 a **dev** channel, test it, then **promote the same artifacts** to prod — promote
 never rebuilds, so prod is byte-identical to what was tested.
 
@@ -150,10 +150,11 @@ mill ask "<q>"      # one-shot vault answer
 | `vault/core` | vault tools + LanceDB indexer (`mill index`/`ask`) |
 | `vault/privacy-box` | the sandbox/orchestrator generated vault programs run under |
 | `vault/cli` | the Swift `mill` CLI + the installer (`Bootstrapper.swift`) |
-| `app/server` | the web app's Mojo HTTP/WS backend (`GET /api/vault`, `POST /chat`) |
-| `app/web` | the SvelteKit web UI (Chat + Vault views) |
-| `app/ios`, `menu-bar` | native clients |
+| `vault/app/server` | the web app's Mojo HTTP/WS backend (in the vault monorepo) |
+| `vault/app/web` | the SvelteKit web UI (in the vault monorepo) |
+| `vault/app/ios`, `menu-bar` | native clients (menu-bar still its own private repo) |
 | `flare json lancedb pdftotext csv jinja2 zlib` | vendored Mojo libs |
 | `browser-native.mojo` | Mojo wrapper around the `agent-browser` CLI (agent-friendly browser automation) |
-| `scripts` | release orchestration (`release`/`verify`) |
+| `vault/release` | release orchestration (`release:*` moon tasks; lives in the monorepo) |
+| `scripts` | superproject hygiene (hooks, precommit/preflight, build/check) |
 | `website` | millfolio.app marketing site |
