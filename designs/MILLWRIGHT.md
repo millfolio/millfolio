@@ -2,7 +2,7 @@
 
 _Design note. Status: **v1 COMPLETE in code** (2026-07-11, `millwright` branches
 in vault + app): storage seams, the versioned spec API, pin-from-Ask, the Board
-tab + trusted chrome, and model-assisted spec edit (viewgen rides privacy-box's
+tab + trusted chrome, and model-assisted spec edit (viewgen rides enclave's
 transport — the single Anthropic egress — with its own system prompt; the reply
 passes the same lint as a hand edit). Defaults chosen on the open questions
 below: ONE dashboard spec, manual refresh + staleness stamp, simple column grid
@@ -76,9 +76,9 @@ out to a `git` binary (which would drag in the Xcode CLT as a dependency).
 "Export the history as a real git repo" is a later, portability-flavored
 feature.
 
-## Refresh: a scheduling problem the orchestrator already solves
+## Refresh: a scheduling problem the Scheduler already solves
 
-A widget's program re-runs through the **work orchestrator** as a low-priority
+A widget's program re-runs through the **Scheduler** as a low-priority
 job, keyed on the vault's monotonic insertion generation (the same counter the
 tag-backfill ledger uses) — so a widget refreshes only when data it could see
 has changed, at background politeness, never at view time. The UI shows a

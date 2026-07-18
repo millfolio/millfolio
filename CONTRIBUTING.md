@@ -112,7 +112,7 @@ with coverage; prefer pure functions that test without a network or a browser.
 
 ## Prompt eval — run after major changes (ESPECIALLY a model change)
 
-The codegen system prompt (`vault/privacy-box/resources/privacy_box-system.md`)
+The codegen system prompt (`vault/enclave/resources/enclave-system.md`)
 steers the frontier model to write the vault-answering program with the right SHAPE
 (`transactions()` + `money()` for spending, `manifest()` for vault-structure
 questions; never `.alias`, `search()` for exact aggregates, or raw-float `$`
@@ -121,8 +121,8 @@ unit-tested — we *run* codegen on a synthetic manifest and lint the output sha
 
 **Codegen quality is a property of the (prompt, MODEL) pair, so the eval is
 model-dependent** — one golden set per model. Re-run it after **any change to the
-served model** (`remote_model` in `vault/privacy-box/src/settings.mojo` +
-`config.example.json`), after **major edits to `privacy_box-system.md`** or the
+served model** (`remote_model` in `vault/enclave/src/settings.mojo` +
+`config.example.json`), after **major edits to `enclave-system.md`** or the
 tag/manifest surface codegen sees, and before promoting a dev rc to prod.
 
 ```bash
@@ -132,7 +132,7 @@ moon run vault:eval -- claude-sonnet-4-6      # a specific model
 EVAL_VERBOSE=1 moon run vault:eval            # print the generated program for each FAIL
 ```
 
-- **Per-model goldens:** `vault/privacy-box/eval/golden.<model>.tsv`. New model? Copy
+- **Per-model goldens:** `vault/enclave/eval/golden.<model>.tsv`. New model? Copy
   the closest and adjust; an unknown model exits non-zero and lists the ones present.
 - **Fixture tags, not yours:** the run copies `eval/fixtures/data` to a temp
   `MILLFOLIO_DATA_DIR`, so codegen sees a FIXED tag set defined there — never your
@@ -140,7 +140,7 @@ EVAL_VERBOSE=1 moon run vault:eval            # print the generated program for 
 - Model-nondeterministic + key-requiring, so it's **NOT in `:check`** — a manual
   pre-release gate. The eval **harness** *is* unit-tested (mock-driven, no key) via
   `moon run vault:eval-selftest`, which runs in `:check` so it can't rot. See
-  `vault/privacy-box/eval/README.md` for the design.
+  `vault/enclave/eval/README.md` for the design.
 
 ## Bumping the Mojo toolchain
 

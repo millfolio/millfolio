@@ -7,7 +7,7 @@ _Design note. Status: recommendation (decided). Audience: the app author._
 The app's core flow today: a user asks a question → the frontier **codegen**
 model writes one small Mojo program (`from vault import *`) that calls the vault
 tools (`transactions()`, `money()`, `.tags`, `search()`, `ask_local()`) →
-`privacy_box` compiles it and runs it in a **macOS Seatbelt sandbox** over the
+`enclave` compiles it and runs it in a **macOS Seatbelt sandbox** over the
 real vault → the program's `print_answer(...)` output is captured, the internal
 sentinel lines are stripped, and the remaining text is shipped to the SvelteKit
 UI as one WebSocket `message` event and rendered as a chat bubble
@@ -46,7 +46,7 @@ specific to _this_ app:
 - **The generated program is UNTRUSTED.** It runs in Seatbelt precisely because
   a prompt-injected vault document could steer the model into hostile code —
   that's the whole reason for the sandbox
-  (`vault/privacy-box/src/orchestrator.mojo`, the `run_vault_task`
+  (`vault/enclave/src/harness.mojo`, the `run_vault_task`
   confidentiality argument). If the program could emit HTML/SVG or drive a real
   renderer, we'd hand untrusted code a **markup/injection channel right where we
   built the security boundary**. A closed, typed spec means every string that
@@ -60,7 +60,7 @@ specific to _this_ app:
 - **It reuses existing discipline.** The `vault:eval` shape-lint already guards
   the program's _shape_ — it must use `transactions()`/`money()`/`.tags`, never
   `.alias`, never `search()`-for-totals, never raw-float `$` (the "$224,303
-  phone bill" class of bug; see `vault/privacy-box/eval/README.md`). The result
+  phone bill" class of bug; see `vault/enclave/eval/README.md`). The result
   spec becomes **another validated contract** the same harness can lint: "if the
   answer is a spending total, it emits a typed money scalar, not a bare float."
   Critically, `money()` values must cross the seam as **typed money** (a raw
@@ -183,11 +183,11 @@ The transport already has the right seams. Two grounded options:
 **How the spec leaves the sandbox** — reuse the existing sentinel channel. The
 program already emits out-of-band lines with dedicated sentinels
 (`PROGRESS_SENTINEL`, `STAT_SENTINEL`, `LOCAL_SENTINEL` —
-`orchestrator.mojo:43-48`), and `_strip_progress` (`orchestrator.mojo:51`)
+`harness.mojo:43-48`), and `_strip_progress` (`harness.mojo:51`)
 filters them out of the captured answer text. Add a `RESULT_SENTINEL`: the
 builders emit the serialized spec on a `RESULT_SENTINEL`-prefixed line;
 `_strip_progress` already drops it from `text`; `vault_run_finish`
-(`orchestrator.mojo:404`) captures it separately and the WS server attaches it
+(`harness.mojo:404`) captures it separately and the WS server attaches it
 to the message/result event. No new channel out of Seatbelt — it rides the one
 that already exists, and stays plain-text-escaped data the whole way.
 
@@ -247,7 +247,7 @@ emits the same `v:1` spec either way.
     bare floats). Ship with **no chart** yet — proves the seam.
 - **Phase 2 — chart presenter (form heuristic).** Add the deterministic
   shape→mark presenter (line/bar/grouped-bar) + the optional `hint`. Teach the
-  codegen prompt (`privacy_box-system.md`) the builder API and _when_ to emit a
+  codegen prompt (`enclave-system.md`) the builder API and _when_ to emit a
   series vs. a scalar — narrowly, since the presenter, not the model, chooses
   the mark. Attach-at-end streaming.
 - **Phase 3 — desktop shell.** Wrap the web UI in a `WKWebView` window in the

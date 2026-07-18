@@ -2,7 +2,7 @@
 
 This is the **moon workspace / git superproject** that ties together millfolio's
 repos (each a submodule). The personal-data-vault product is: a combined
-inference server (`engine`) + a privacy/sandbox orchestrator (`vault/privacy-box`)
+inference server (`engine`) + the **Enclave** (`vault/enclave`, a Seatbelt sandbox running the **Harness** codegen loop)
 + vault tools/indexer (`vault/core`) + the `mill` CLI (`vault/cli`) + the web app
 (`vault/app/` — the app repo was merged INTO vault, Tier-1 consolidation 2026-07-12), shipped to users as one downloadable bundle and a Homebrew formula.
 
@@ -55,7 +55,7 @@ unavailable: `git push "https://x-access-token:$(gh auth token)@github.com/<org>
 `pdftotext`, `csv`, `jinja2`, `zlib`, `browser-native`).
 
 ```bash
-moon run vault:build         # Mojo binaries: build/vault (core) + build/privacy_box
+moon run vault:build         # Mojo binaries: build/vault (core) + build/enclave
 moon run vault:build-cli     # the Swift `mill` umbrella CLI
 moon run vault:bundle        # assemble millfolio.zip (the install bundle)
 moon run app-server:build    # the web app's Mojo server (millfolio-server + -ws)
@@ -91,13 +91,13 @@ to verify Mojo changes locally before relying on CI.
   them all, cached + affected-aware — the single source of truth locally and in CI.
 
 - **Prompt eval is a PRE-RELEASE gate, not in `:check`.** The codegen system prompt
-  (`vault/privacy-box/resources/privacy_box-system.md`) is an LLM behaviour — it
-  can't be unit-tested. `moon run vault:eval` drives `privacy_box codegen` on a
+  (`vault/enclave/resources/enclave-system.md`) is an LLM behaviour — it
+  can't be unit-tested. `moon run vault:eval` drives `enclave codegen` on a
   synthetic manifest and lints the generated program's SHAPE (must use
   `transactions()`/`money()`, never `.alias`/`search()`-for-totals/raw-float `$`) —
   guarding the "$224,303 phone bill" class. It needs `ANTHROPIC_API_KEY` and is
   model-nondeterministic, so it's a manual pre-release step, kept OUT of pre-push.
-  See `vault/privacy-box/eval/README.md`.
+  See `vault/enclave/eval/README.md`.
 
 - **Two-tier git hooks** (install with `bash scripts/install-hooks.sh`; fans out to
   the superproject + every submodule):
@@ -116,7 +116,7 @@ to verify Mojo changes locally before relying on CI.
 Built from `vault/cli`; installed via `brew install millfolio/tap/mill`.
 
 ```bash
-mill install        # provision: inference server + weights + privacy_box + vault tools + web app
+mill install        # provision: inference server + weights + enclave + vault tools + web app
 mill update         # brew-upgrade the CLI, then refresh the downloadable components
 mill start          # bring everything up; serves the millfolio web app at http://localhost:10000
 mill stop           # tear it down
@@ -148,7 +148,7 @@ mill ask "<q>"      # one-shot vault answer
 |-----|------|
 | `engine` | combined inference server (chat + embeddings), Mojo + Metal |
 | `vault/core` | vault tools + LanceDB indexer (`mill index`/`ask`) |
-| `vault/privacy-box` | the sandbox/orchestrator generated vault programs run under |
+| `vault/enclave` | the **Enclave** — the **Harness** codegen loop + Seatbelt sandbox that generated vault programs run under |
 | `vault/cli` | the Swift `mill` CLI + the installer (`Bootstrapper.swift`) |
 | `vault/app/server` | the web app's Mojo HTTP/WS backend (in the vault monorepo) |
 | `vault/app/web` | the SvelteKit web UI (in the vault monorepo) |

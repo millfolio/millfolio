@@ -16,7 +16,7 @@ submodules. They stack in four layers; **dependencies point strictly downward.**
                 │  HTTP / WebSocket (loopback or tailnet)
 ┌─ infra / runtime ─────────────────────────────────────────────────────────┐
 │  engine (:8000 inference, Metal)   app/server (:10000 UI+REST+chat)        │
-│  vault/privacy-box (codegen broker + EgressGuard + sandbox)   vault/cli    │
+│  vault/enclave = Enclave (Harness + EgressGuard + sandbox)   vault/cli     │
 └───────────────▲───────────────────────────────────────────────────────────┘
                 │  `from vault import *`  /  build_index
 ┌─ domain / tools  (the `vault` package) ───────────────────────────────────┐
@@ -45,7 +45,7 @@ project. Each ships as a precompiled `.mojopkg`.
 | `docx` | .docx → text (ZIP + OOXML) | `zlib` |
 | `csv` | RFC-4180 CSV | — |
 | `lancedb` | on-device vector store (Rust cdylib via FFI) | — |
-| `jinja2` | templating (privacy-box prompts) | — |
+| `jinja2` | templating (enclave prompts) | — |
 
 ## 2. Domain / tools — the `vault` package
 
@@ -64,7 +64,7 @@ that contract):
   `from vault import *`: `manifest`, `search`, `file_chunks`, `csv_rows`,
   `pdf_text`/`md_text`/`docx_text`, `ask_local`/`ask_local_batch`, `transactions`,
   `print_answer`, `progress`, `iso_date`, `parse_amount`, `money`. Small + stable —
-  treat it as a versioned contract (it must match `privacy_box-system.md` exactly).
+  treat it as a versioned contract (it must match `enclave-system.md` exactly).
 - **`vault/index/`** — `build_index` (incremental chunk + embed), the LanceDB store,
   the readers/embed/sha256, the side-tables (`chunks.tsv`, `manifest.tsv`,
   `transactions.tsv`).
@@ -92,8 +92,8 @@ The long-running processes + orchestration that turn the tools into a service.
 | repo | process | role |
 |---|---|---|
 | `engine` | inference server `:8000` | ONE process serving a chat model **and** an embedding model; Mojo + Metal GPU |
-| `vault/privacy-box` | orchestrator (in-process / CLI) | brokers codegen (frontier vs local), enforces the **EgressGuard** (fails closed), compiles + runs the generated program under a **Seatbelt** sandbox (network-denied except loopback). The security boundary is sealed in its `security/` sub-package (`sandbox`/`egress`/`broker`/`budget`) |
-| `app/server` | web backend `:10000` | serves UI + REST + chat WS; embeds the orchestrator per-connection; streams progress. Internally: `server.mojo` is a thin composition root (route dispatcher + `main()`) over per-domain `handlers_*` modules (chat/vault/tags/models/…) and `work_orchestrator.mojo`, which runs ALL background engine work (indexing + AI-tag backfill) serially |
+| `vault/enclave` | the **Enclave** — its **Harness** codegen loop (in-process / CLI) | brokers codegen (frontier vs local), enforces the **EgressGuard** (fails closed), compiles + runs the generated program under a **Seatbelt** sandbox (network-denied except loopback). The security boundary is sealed in its `security/` sub-package (`sandbox`/`egress`/`broker`/`budget`) |
+| `app/server` | web backend `:10000` | serves UI + REST + chat WS; embeds the **Harness** per-connection; streams progress. Internally: `server.mojo` is a thin composition root (route dispatcher + `main()`) over per-domain `handlers_*` modules (chat/vault/tags/models/…) and `scheduler_loop.mojo` (the **Scheduler**), which runs ALL background engine work (indexing + AI-tag backfill) serially |
 | `vault/cli` | the `mill` Swift CLI + bootstrapper | provisions bundle + toolchain + weights, manages the launchd agents, runs `index`/`ask`/`start`/`stop` |
 
 **Runtime shape:** two processes (inference `:8000` GPU, app `:10000`), both under
@@ -139,7 +139,7 @@ uses them; infra orchestrates the domain; apps consume infra over the wire.
   EgressGuard gates the outbound codegen path and fails closed.
 - Data never leaves the device; the answer is printed locally.
 
-Enforced by **infra** (privacy-box) + the **tool boundary** (vault aliases), not left
+Enforced by **infra** (enclave) + the **tool boundary** (vault aliases), not left
 to callers.
 
 ## Packaging / build / test
@@ -175,17 +175,17 @@ parts I'd call out:
   `iso_date` (in `extract/`) are the seed of a reusable formatting/parsing group.
 - **"Tools" is the right name for what the generated program sees**, and it's worth
   treating the `from vault import *` surface as a *versioned contract* (it already
-  must match `privacy_box-system.md` exactly). Adding a tool = a deliberate API
+  must match `enclave-system.md` exactly). Adding a tool = a deliberate API
   change, not an incidental export.
 - **The codegen seam is a genuine architectural asset.** Keeping codegen behind a
   configurable endpoint (rather than hard-wired to one provider) is what makes the
   demo, offline/mock mode, and provider swaps cheap. Preserve that.
-- **One thing that blurs the layers:** `app/server` embeds the privacy-box
-  orchestrator in-process rather than calling it as a service. That's fine for a
+- **One thing that blurs the layers:** `app/server` embeds the Enclave's
+  **Harness** in-process rather than calling it as a service. That's fine for a
   single-box product, but it means "infra" has an internal call graph, not just a
   wire protocol. If you ever scale out, that's the seam to formalize. (The 2026-07
-  carve-up makes it findable: the orchestrator is reached from `handlers_chat` /
-  `work_orchestrator`, not from a god-file.)
+  carve-up makes it findable: the **Harness** is reached from `handlers_chat`, the
+  **Scheduler** from `scheduler_loop`, not from a god-file.)
 - **Cross-cutting concerns** (the alias contract, the sandbox profile, the FFI
   shims, the pinned nightly) live in a few specific places and are easy to get
   wrong from the outside — they belong to infra/domain and should never be a
