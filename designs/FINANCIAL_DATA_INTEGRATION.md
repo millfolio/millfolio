@@ -15,8 +15,10 @@ options fall into **three** camps, not two:
 1. **Store-everything aggregators** (Plaid, Teller, hosted SimpleFIN) — off-device;
    reject or heavily gate.
 2. **Pass-through networks** (Akoya) — an FDX router that *does not store, copy, or
-   analyze* the data; credential-free; a genuine third category discovered
-   2026-07-24, and the best privacy fit that works *today* for banks already on it.
+   analyze* the data; credential-free; the best privacy fit that works *today* for
+   banks already on it — **but gated behind a ~$2k/month production floor**, so
+   useful now only as a free sandbox to build the (reusable) FDX client, not as a
+   shippable path for an early product.
 3. **Direct bank↔app** (OFX Direct Connect, CFPB-1033/FDX) — no intermediary at
    all; the purest shape, but coverage-limited (OFX) or timeline/legally-gated (1033).
 
@@ -29,7 +31,7 @@ options fall into **three** camps, not two:
 | **Plaid** | Yes — collects + monetizes | ❌ | Yes (approval + paid) | ★★★ >12k institutions | High — webview Link + server token exchange | **Reject** |
 | **Teller** | Yes — collects + analyzes | ❌ | Yes (indie-ish, mTLS) | ★★ US, narrower | Medium | **Reject** |
 | **SimpleFIN Bridge** | Yes — hosted Bridge caches txns | ⚠️ partial (self-host possible) | **Yes — no contract, ~$1.50/mo, token** | ★★ decent, flaky | **Low — plain JSON GET** | **Least-bad aggregator**, opt-in only |
-| **Akoya (pass-through network)** | **No — routes, keeps nothing** | ✅ (data isn't warehoused) | ⚠️ self-serve sandbox; **prod = usage-based contract** | ★★★ 4,300+ FIs (Wells Fargo, TD, Fidelity-network…) | Medium — FDX/OAuth via one network integration | **Best privacy fit that works TODAY** |
+| **Akoya (pass-through network)** | **No — routes, keeps nothing** | ✅ (data isn't warehoused) | Sandbox free; **prod ~$2k/mo MINIMUM** | ★★★ 4,300+ FIs (Wells Fargo, TD, Fidelity-network…) | Medium — FDX/OAuth via one network integration | **Best privacy TODAY, but $24k/yr floor → only at scale** |
 | **OFX Direct Connect** | **No — bank↔app only** | ✅ | Partial (per-bank enroll, some fees) | ★ collapsing | Medium — OFX client | **Best privacy, dying coverage** |
 | **CFPB-1033 / FDX API** | **No (aggregator optional)** | ✅ | **Yes** once live (fee-free, no-credential, revocable) | ★★★ eventually all large/mid banks | Medium-High + regulatory risk | **Strategic bet** |
 
@@ -78,9 +80,16 @@ collector-of-record.
   Wells Fargo also keeps **direct** FDX data-exchange agreements for partners who
   sign one. So for a covered bank, Akoya is the aggregator-free way to get real FDX
   data **today**, years before 1033 forces universal coverage.
-- **Access model:** Akoya offers a **self-service developer sandbox**, but
-  **production is a usage-based commercial agreement** — not the zero-contract
-  self-serve of SimpleFIN. There is an onboarding/sales step.
+- **Access model + the killer number:** Akoya offers a **self-service developer
+  sandbox** (free, test bank "Mikomo"), but **production carries a ~$2,000/month
+  MINIMUM** (≈$24k/yr floor, confirmed 2026-07-24) on top of usage-based pricing —
+  not the zero-contract self-serve of SimpleFIN. That floor is the decisive fact:
+  to break even a per-user pass-through would need **~low-thousands of active
+  bank-connected users** before the first dollar of margin, so Akoya production is
+  **not viable for an early/indie product** — only once millfolio has real paid
+  scale. (The floor is exactly the fixed intermediary cost that CFPB-1033 makes
+  **illegal to charge**, §1033.301(c) — which is why 1033, not Akoya, is the
+  end-state.)
 - **Why it's the strongest *available-now* fit for the promise:** no credentials
   in our app, no third party warehousing the user's finances, standardized FDX
   payloads that map straight into the vault's `transactions()` schema — and it
@@ -159,15 +168,15 @@ cloud component (an on-device OAuth redirect handler).
 2. **Do not adopt Plaid or Teller.** They are architecturally incompatible with
    the promise; adopting one would force us to either lie about the promise or
    bolt on a cloud backend that sees the user's finances.
-3. **Evaluate Akoya as the near-term automatic path** — it delivers FDX data
-   **today** for banks already on the network (incl. **Wells Fargo**) through a
-   *pass-through* router that stores nothing, so it can plausibly preserve the
-   promise. It's the same FDX payload shape as 1033, just available now. Gate the
-   evaluation on the four unknowns above — chiefly **whether a native on-device app
-   can onboard without our own cloud** and the low-volume pricing. If those clear,
-   Akoya + 1033 become one continuous plan (**Akoya now, 1033 as it goes live**);
-   if the on-device-fit fails, it degrades to the same "off-device" verdict as the
-   aggregators.
+3. **Use Akoya's free sandbox to BUILD the FDX client, but do not plan on Akoya
+   production.** The **~$2k/month minimum** ($24k/yr) rules it out until millfolio
+   has low-thousands of paid bank-connected users — an early product can't carry
+   that floor. What the sandbox *is* good for: it's a free, real FDX endpoint
+   (test bank "Mikomo") to write and validate the OAuth→pull-transactions→map-to
+   -`transactions()` client **once** — and because Akoya *is* FDX, that same client
+   is the 1033 client. So sandbox = de-risk the integration cheaply; production =
+   wait for 1033 (fee-free by law) rather than pay Akoya's floor. Revisit Akoya
+   production only if millfolio reaches the scale where $24k/yr is a rounding error.
 4. **Track CFPB 1033 / FDX as the strategic (universal) target** — the *only* path
    that is simultaneously **aggregator-free, broad, fee-free, and legally
    anti-monetization**, and the one that eventually covers banks Akoya doesn't.
@@ -185,11 +194,11 @@ cloud component (an on-device OAuth redirect handler).
 
 ## Open questions / next steps
 
-- **Akoya fit for an on-device app** — the decisive near-term question: does Akoya
-  admit a native, per-user desktop app as a data recipient, can its consent/token
-  flow complete without our own cloud redirect endpoint, what are the low-volume
-  prod terms, and which Wells Fargo scopes (txns ≥24mo, balances) does it expose?
-  Start with the **self-serve Akoya sandbox** (no contract) to answer these cheaply.
+- **Akoya production is priced out for now** (~$2k/mo min, confirmed 2026-07-24) —
+  so the only near-term use is the **free sandbox**: does it self-register or gate
+  to a sales flow, can the consent/token flow complete without our own cloud
+  redirect, and does the FDX payload map cleanly to `transactions()`? Answering
+  those builds the FDX client cheaply; it is NOT a path to shipping until scale.
 - Re-verify 1033's live legal status + revised compliance dates before roadmapping.
 - Stand up an **FDX sandbox** prototype (Akoya's sandbox doubles for this, since
   Akoya *is* FDX): OAuth-style auth → pull 24-mo transactions → map into the vault's
@@ -210,7 +219,9 @@ Access Network](https://akoya.com/news/wells-fargo-joins-the-akoya-data-access-n
 [Akoya — Data Access Network docs](https://docs.akoya.com/docs/data-access-network),
 [Akoya — data sharing / privacy model](https://akoya.com/datasharing),
 [Akoya — pricing](https://akoya.com/pricing),
-[FDX — Wells Fargo member spotlight](https://financialdataexchange.org/fdx-feed/member-spotlight-wells-fargo-and-xero-on-the-evolution-of-data-sharing/).*
+[FDX — Wells Fargo member spotlight](https://financialdataexchange.org/fdx-feed/member-spotlight-wells-fargo-and-xero-on-the-evolution-of-data-sharing/).
+The **~$2,000/month production minimum** is a direct finding (2026-07-24), not on
+the public pricing page — confirm the current figure before decisioning.*
 
 *Facts outside the primary files (pricing, coverage breadth, protocol mechanics,
 on-device eligibility, current litigation status) should be **re-verified before
