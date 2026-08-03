@@ -71,14 +71,32 @@ to verify Mojo changes locally before relying on CI.
 ## Toolchain & testing
 
 - **Shared Mojo nightly.** Every Mojo repo pins the *same* nightly in its
-  `pixi.toml` (currently **`1.0.0b3.dev2026062706`**) — the `-I ../sibling` layout
-  requires one shared version. To bump: edit the pin in each `pixi.toml` (and the
-  `recipe.yaml` run-reqs for json + flare — a second, easy-to-miss pin),
-  `pixi update mojo`, then rebuild/test in dep order (libs → engine → vault →
-  app-server). Bump gotchas seen on dev2026062706: recursive structs (e.g. a
+  `pixi.toml` (currently **`1.0.0b3.dev2026080206`**) — the `-I ../sibling` layout
+  requires one shared version. Check EVERY `pixi.toml` in the tree before assuming
+  the bump is complete — `vault/app/server/pixi.toml` carries its own separate
+  pin (missed on the dev2026080206 bump since `vault/app/` only entered some
+  checkouts via a later merge; CI's `bundle`/`server`/`app zip` jobs caught it).
+  To bump: edit the pin in each `pixi.toml` (and the `recipe.yaml` run-reqs for
+  json + flare — a second, easy-to-miss pin), `pixi update mojo`, **then clear
+  each repo's stale compile cache** (`rm -rf .pixi/envs/*/share/max/cache/.mojo_cache`
+  — `pixi update` only manages conda-tracked files, so a runtime-written cache
+  from the OLD compiler is never touched by the package update and can be silently
+  reused), then rebuild/test in dep order (libs → engine → vault → app-server).
+  End users get this for free — `mill`/`mill-dev install`'s toolchain-staleness
+  check wipes the WHOLE shared prefix (compiler + cache together) on a version
+  mismatch (`Bootstrapper.swift`'s `mojoToolchainStale`/`installServer`) — this
+  step is only for dev/CI pixi envs, which don't go through that path.
+  Bump gotchas seen on dev2026062706→dev2026080206: recursive structs (e.g. a
   `List[Self]` field) now hard-error `field has non-implicitly deletable type` →
   add a trivial `def __del__(deinit self): pass`; destructors must be `def` not
-  `fn`; `reflect[T]()` → `reflect[T]`; `len(String/StringSlice)` → `.byte_length()`.
+  `fn`; `reflect[T]()` → `reflect[T]`; `len(String/StringSlice)` → `.byte_length()`;
+  `layout` (TileTensor/row_major, engine's GPU kernels) moved out of mojo into
+  MAX — pixi envs need an explicit `max = "==<ver>"` dependency, the end-user
+  installer needs `max-core` (the python-version-independent package that
+  actually provides `layout`, unlike `max` itself which also drags in a whole
+  click/numpy/rich Python CLI); `Int`/`UInt` no longer conform to `DevicePassable`
+  — GPU kernel scalar args/params need a fixed-width type (`Int32`/`UInt32`),
+  converted back with `Int(...)` inside the kernel body.
 
 - **GPU/Metal (engine).** Metal builds need the Xcode **Metal Toolchain**
   component. If `xcrun metal --version` says `missing Metal Toolchain`, install it
