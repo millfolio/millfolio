@@ -71,7 +71,7 @@ to verify Mojo changes locally before relying on CI.
 ## Toolchain & testing
 
 - **Shared Mojo nightly.** Every Mojo repo pins the *same* nightly in its
-  `pixi.toml` (currently **`1.0.0b3.dev2026080206`**) — the `-I ../sibling` layout
+  `pixi.toml` (currently **`1.0.0rc0`**, with `max`/`max-core` at **`26.5.0rc0`**) — the `-I ../sibling` layout
   requires one shared version. Check EVERY `pixi.toml` in the tree before assuming
   the bump is complete — `vault/app/server/pixi.toml` carries its own separate
   pin (missed on the dev2026080206 bump since `vault/app/` only entered some
@@ -86,7 +86,8 @@ to verify Mojo changes locally before relying on CI.
   check wipes the WHOLE shared prefix (compiler + cache together) on a version
   mismatch (`Bootstrapper.swift`'s `mojoToolchainStale`/`installServer`) — this
   step is only for dev/CI pixi envs, which don't go through that path.
-  Bump gotchas seen on dev2026062706→dev2026080206: recursive structs (e.g. a
+  Bump gotchas seen on dev2026062706→dev2026080206→1.0.0rc0 (see also the
+  `mojo-1.0-rc0-port` memory note): recursive structs (e.g. a
   `List[Self]` field) now hard-error `field has non-implicitly deletable type` →
   add a trivial `def __del__(deinit self): pass`; destructors must be `def` not
   `fn`; `reflect[T]()` → `reflect[T]`; `len(String/StringSlice)` → `.byte_length()`;
