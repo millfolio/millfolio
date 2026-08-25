@@ -1,26 +1,19 @@
 $schema: 'https://moonrepo.dev/schemas/workspace.json'
 
-# Explicit id → path map. IDs are clean (no dots); paths keep the on-disk names,
-# preserving the Mojo `-I ../sibling` layout invariant.
+# Explicit id → path map. IDs are clean (no dots). The tin libs (csv, zlib,
+# docx, pdftotext, jinja2, logging, browser-native, lancedb) left the
+# workspace: they are mojoshelf tins now, consumed as pixi source deps.
 projects:
   # app lives INSIDE the vault monorepo since the Tier-1 consolidation.
   app-ios: 'vault/app/ios'
   app-server: 'vault/app/server'
   app-web: 'vault/app/web'
-  browser-native: 'browser-native.mojo'
-  csv: 'csv.mojo'
-  docx: 'docx.mojo'
   engine: 'engine'
   flare: 'flare'
-  jinja2: 'jinja2.mojo'
   json: 'json'
-  lancedb: 'lancedb.mojo'
-  logging: 'logging.mojo'
   menu-bar: 'menu-bar'
-  pdftotext: 'pdftotext.mojo'
   vault: 'vault'
   website: 'website'
-  zlib: 'zlib.mojo'
   # The release pipeline lives with the product (vault monorepo).
   release: 'vault/release'
 

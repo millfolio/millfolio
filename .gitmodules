@@ -1,7 +1,3 @@
-[submodule "csv.mojo"]
-	path = csv.mojo
-	url = git@github.com:millfolio/csv.mojo.git
-	branch = main
 [submodule "engine"]
 	path = engine
 	url = git@github.com:millfolio/engine.git
@@ -10,25 +6,13 @@
 	path = flare
 	url = git@github.com:millfolio/flare.git
 	branch = main
-[submodule "jinja2.mojo"]
-	path = jinja2.mojo
-	url = git@github.com:millfolio/jinja2.mojo.git
-	branch = main
 [submodule "json"]
 	path = json
 	url = git@github.com:millfolio/json.git
 	branch = main
-[submodule "lancedb.mojo"]
-	path = lancedb.mojo
-	url = git@github.com:millfolio/lancedb.mojo.git
-	branch = main
 [submodule "menu-bar"]
 	path = menu-bar
 	url = git@github.com:millfolio/menu-bar.git
-	branch = main
-[submodule "pdftotext.mojo"]
-	path = pdftotext.mojo
-	url = git@github.com:millfolio/pdftotext.mojo.git
 	branch = main
 [submodule "vault"]
 	path = vault
@@ -37,18 +21,4 @@
 [submodule "website"]
 	path = website
 	url = git@github.com:millfolio/website.git
-	branch = main
-[submodule "zlib.mojo"]
-	path = zlib.mojo
-	url = git@github.com:millfolio/zlib.mojo.git
-	branch = main
-[submodule "docx.mojo"]
-	path = docx.mojo
-	url = git@github.com:millfolio/docx.mojo.git
-[submodule "logging.mojo"]
-	path = logging.mojo
-	url = git@github.com:millfolio/logging.mojo.git
-[submodule "browser-native.mojo"]
-	path = browser-native.mojo
-	url = git@github.com:millfolio/browser-native.mojo.git
 	branch = main
